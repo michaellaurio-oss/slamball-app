@@ -228,6 +228,8 @@ class HeartRateManager(context: Context, private val store: SettingsStore) {
                 g.setCharacteristicNotification(ch, true)
                 val cccd = ch.getDescriptor(CCCD)
                 if (cccd != null) {
+                    // "Connected" is shown once the strap confirms notifications (onDescriptorWrite),
+                    // or when the first reading arrives, whichever comes first.
                     if (Build.VERSION.SDK_INT >= 33) {
                         g.writeDescriptor(cccd, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
                     } else {
@@ -236,10 +238,21 @@ class HeartRateManager(context: Context, private val store: SettingsStore) {
                         @Suppress("DEPRECATION")
                         g.writeDescriptor(cccd)
                     }
+                } else {
+                    _state.value = State.CONNECTED // no config descriptor; readings may still arrive
                 }
-                _state.value = State.CONNECTED
             } catch (_: SecurityException) {
                 _error.value = "Allow the Nearby devices permission to read heart rate."
+            }
+        }
+
+        override fun onDescriptorWrite(g: BluetoothGatt, d: BluetoothGattDescriptor, status: Int) {
+            if (d.uuid != CCCD) return
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                _state.value = State.CONNECTED
+            } else {
+                _error.value = "The strap didn't start sending heart rate (error $status). Tap Reconnect."
+                handler.post { disconnect() }
             }
         }
 
@@ -277,6 +290,7 @@ class HeartRateManager(context: Context, private val store: SettingsStore) {
         if (bpm in 25..250) {
             lastReadingAt = SystemClock.elapsedRealtime()
             _heartRate.value = bpm
+            if (_state.value != State.CONNECTED) _state.value = State.CONNECTED
         }
     }
 
