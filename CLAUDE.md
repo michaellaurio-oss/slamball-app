@@ -48,6 +48,10 @@ Portable toolchain on Michael's Windows PC (no Android Studio):
 - Build: `$env:JAVA_HOME='D:\Users\micha\Android\jdk-17'; .\gradlew.bat assembleDebug`
 - Install: `adb install -r app\build\outputs\apk\debug\app-debug.apk` (keeps data). Or double-click
   `install.bat`, which does both.
+- Signing: debug builds use `app/debug.keystore` (committed on purpose, standard `android` passwords),
+  copied from his PC's `~/.android/debug.keystore`, which signed the installed app. Never remove or
+  replace it: a different key means updates fail and the only way in is an uninstall. Recovery steps
+  for a new PC are in `RECOVERY.md`; keep them current if the toolchain changes.
 - Phone: Samsung, adb id `R5CY20N34VZ`. If adb shows `unauthorized`, he needs to tap Allow on the phone.
 
 Versions match his other app (Range Log) so cached dependencies are reused: AGP 8.7.3, Kotlin 2.0.21,

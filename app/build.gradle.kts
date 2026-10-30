@@ -16,7 +16,22 @@ android {
         versionName = "1.0"
     }
 
+    // Sign debug builds with the key kept in this repo (app/debug.keystore), not the per-PC key in
+    // ~/.android. Updates must be signed with the same key as the installed app, or the only way to
+    // install is to uninstall first, which deletes workout history. Standard debug passwords.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

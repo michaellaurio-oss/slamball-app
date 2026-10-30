@@ -82,6 +82,10 @@ If adb lists the phone as `unauthorized`, unlock the phone and tap **Allow** on 
 
 Requires Android 8.0 or newer.
 
+**Lost or replaced the PC?** See [RECOVERY.md](RECOVERY.md) for rebuilding from GitHub. Debug builds are
+signed with `app/debug.keystore` (in the repo), so any PC can update the installed app without
+wiping its history.
+
 ## First workout checklist
 
 1. On first launch, allow **Nearby devices** (strap) and **Microphone** (slam counting).
