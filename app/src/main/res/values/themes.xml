@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.SlamLog" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+    </style>
+    <color name="bg">#FF0F1115</color>
+    <color name="accent">#FFFF6B2C</color>
+</resources>
