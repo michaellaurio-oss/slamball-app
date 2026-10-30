@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 /** Voice callouts (text-to-speech) and beeps. */
@@ -18,7 +19,8 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         null
     }
     private val ids = AtomicInteger()
-    private val pending = AtomicInteger()
+    /** Utterances queued or speaking. Tracked by ID, so a cut-off one can't be counted twice. */
+    private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
     @Volatile private var ready = false
     @Volatile private var busyUntil = 0L
@@ -30,27 +32,29 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         tts.language = Locale.US
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {}
-            override fun onDone(utteranceId: String?) = finished()
+            override fun onDone(utteranceId: String?) = finished(utteranceId)
             @Deprecated("Deprecated in Java")
-            override fun onError(utteranceId: String?) = finished()
-            override fun onError(utteranceId: String?, errorCode: Int) = finished()
-            override fun onStop(utteranceId: String?, interrupted: Boolean) = finished()
+            override fun onError(utteranceId: String?) = finished(utteranceId)
+            override fun onError(utteranceId: String?, errorCode: Int) = finished(utteranceId)
+            override fun onStop(utteranceId: String?, interrupted: Boolean) = finished(utteranceId)
         })
         ready = true
     }
 
-    private fun finished() {
-        if (pending.decrementAndGet() < 0) pending.set(0)
+    private fun finished(id: String?) {
+        if (id != null) inFlight.remove(id)
         markBusy(300)
     }
 
     fun say(text: String, interrupt: Boolean = false) {
         if (!voiceEnabled || !ready) return
-        if (interrupt) pending.set(0)
-        pending.incrementAndGet()
+        // A flush stops everything queued; their onStop callbacks then just remove their own IDs.
+        if (interrupt) inFlight.clear()
+        val id = "u${ids.incrementAndGet()}"
+        inFlight.add(id)
         val mode = if (interrupt) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-        if (tts.speak(text, mode, null, "u${ids.incrementAndGet()}") != TextToSpeech.SUCCESS) {
-            pending.decrementAndGet()
+        if (tts.speak(text, mode, null, id) != TextToSpeech.SUCCESS) {
+            inFlight.remove(id)
         }
     }
 
@@ -75,7 +79,7 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     private fun max(a: Long, b: Long) = if (a > b) a else b
 
     /** True while the phone is (or just was) making sound. */
-    fun isBusy(): Boolean = pending.get() > 0 || SystemClock.elapsedRealtime() < busyUntil
+    fun isBusy(): Boolean = inFlight.isNotEmpty() || SystemClock.elapsedRealtime() < busyUntil
 
     fun shutdown() {
         runCatching { tts.stop() }
