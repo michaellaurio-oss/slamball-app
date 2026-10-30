@@ -351,13 +351,13 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             lastTapAt = SystemClock.elapsedRealtime()
         }
 
-        val s = _settings.value
+        // No speech while slamming: the phone's own voice makes the mic harder to trigger.
+        // Just a short double beep when 3 reps are left, and the optional click per rep.
         val left = cfg.targetReps - reps
         when {
             left <= 0 -> endSet()
-            left == 3 && cfg.targetReps > 6 -> speaker.say("3 more")
-            s.callEvery > 0 && reps % s.callEvery == 0 -> speaker.say("$reps")
-            s.repTick -> speaker.tick()
+            left == 3 && cfg.targetReps > 3 -> speaker.threeLeft()
+            _settings.value.repTick -> speaker.tick()
         }
     }
 

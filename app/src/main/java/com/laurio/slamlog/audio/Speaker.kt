@@ -64,6 +64,9 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     /** Start / end of a set. */
     fun beepLong() = play(ToneGenerator.TONE_DTMF_9, 500)
 
+    /** Short double beep: 3 reps left in the set. */
+    fun threeLeft() = play(ToneGenerator.TONE_PROP_BEEP2, 200)
+
     /** Quiet click when a rep is counted. */
     fun tick() = play(ToneGenerator.TONE_DTMF_5, 50)
 

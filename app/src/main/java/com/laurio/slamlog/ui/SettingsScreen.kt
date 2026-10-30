@@ -190,7 +190,7 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onBac
         // ---- Audio cues ----
         SectionCard {
             Label("Audio cues")
-            SwitchRow("Voice callouts", "Set starts, rep counts, rest countdown, recovery", s.voice) {
+            SwitchRow("Voice callouts", "Set starts, rest countdown, recovery results", s.voice) {
                 vm.updateSettings(s.copy(voice = it))
             }
             SwitchRow("Click on each counted rep", "Lets you hear that a slam registered", s.repTick) {
@@ -199,11 +199,10 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onBac
             SwitchRow("Slam effects", "Shockwave burst and screen shake on every counted slam", s.slamEffects) {
                 vm.updateSettings(s.copy(slamEffects = it))
             }
-            Stepper(
-                "Call out reps every",
-                if (s.callEvery == 0) "Off" else "${s.callEvery}",
-                onMinus = { vm.updateSettings(s.copy(callEvery = (s.callEvery - 1).coerceAtLeast(0))) },
-                onPlus = { vm.updateSettings(s.copy(callEvery = (s.callEvery + 1).coerceAtMost(25))) },
+            Text(
+                "During a set there's no talking, so the mic hears every slam: just a double beep " +
+                    "when 3 reps are left.",
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
