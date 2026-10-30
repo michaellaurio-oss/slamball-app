@@ -32,8 +32,9 @@ object Progress {
         .sortedBy { it.startMillis }
 
     /**
-     * Compares the latest baseline test with the first one. Differences under 3 seconds or 5%
-     * count as "about the same", since day-to-day noise (sleep, caffeine, heat) is about that big.
+     * Compares recent baseline tests with early ones. With 4 or more tests it averages the first two
+     * and the last two, so one off day (poor sleep, caffeine, heat) can't flip the answer; with 2 or 3
+     * it compares the first and the latest. Differences under 3 seconds or 5% count as "about the same".
      */
     fun verdict(baselines: List<Session>, target: Int): Verdict {
         if (baselines.isEmpty()) {
@@ -44,17 +45,19 @@ object Progress {
                 null,
             )
         }
-        val first = baselines.first()
-        val last = baselines.last()
-        val f = first.avgTimeToTarget(target)!!
-        val l = last.avgTimeToTarget(target)!!
         if (baselines.size == 1) {
+            val f = baselines.first().avgTimeToTarget(target)!!
             return Verdict(
                 "First baseline: ${mmss(f.roundToInt())} to $target",
                 "Do another baseline test in a week or two to see how it changes.",
                 null,
             )
         }
+        val n = if (baselines.size >= 4) 2 else 1
+        val early = baselines.take(n)
+        val recent = baselines.takeLast(n)
+        val f = early.map { it.avgTimeToTarget(target)!! }.average()
+        val l = recent.map { it.avgTimeToTarget(target)!! }.average()
         val diff = f - l // positive = faster now
         val pct = if (f > 0) diff / f * 100 else 0.0
         val improving = when {
@@ -64,19 +67,24 @@ object Progress {
         }
         val headline = when (improving) {
             true -> "Yes, your recovery is improving"
-            false -> "Recovery is slower than your first baseline"
+            false -> "Recovery is slower than when you started"
             null -> "About the same so far"
         }
+        fun dates(list: List<Session>) = list.joinToString(" & ") { day.format(Date(it.startMillis)) }
         val detail = buildString {
             append("Average time from last slam to $target: ")
-            append("${mmss(f.roundToInt())} on ${day.format(Date(first.startMillis))} → ")
-            append("${mmss(l.roundToInt())} on ${day.format(Date(last.startMillis))}")
+            if (n == 1) {
+                append("${mmss(f.roundToInt())} on ${dates(early)} → ${mmss(l.roundToInt())} on ${dates(recent)}")
+            } else {
+                append("${mmss(f.roundToInt())} (first two tests, ${dates(early)}) → ")
+                append("${mmss(l.roundToInt())} (last two, ${dates(recent)})")
+            }
             if (improving != null) {
                 append(" (${abs(diff).roundToInt()} s ${if (diff > 0) "faster" else "slower"}, ${abs(pct).roundToInt()}%)")
             }
             append(". ")
-            val r1 = first.avgRecoveryBpm
-            val r2 = last.avgRecoveryBpm
+            val r1 = early.mapNotNull { it.avgRecoveryBpm }.takeIf { it.isNotEmpty() }?.average()
+            val r2 = recent.mapNotNull { it.avgRecoveryBpm }.takeIf { it.isNotEmpty() }?.average()
             if (r1 != null && r2 != null) {
                 append("First-minute heart rate drop: ${r1.roundToInt()} → ${r2.roundToInt()} bpm. ")
             }
