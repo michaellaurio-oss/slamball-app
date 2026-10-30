@@ -18,8 +18,8 @@ object Progress {
     private val day = SimpleDateFormat("MMM d", Locale.US)
 
     /**
-     * Finished baseline tests that match today's baseline definition (sets, reps, ball weight)
-     * and have a time to target, oldest first. Only these are compared with each other.
+     * Finished baseline tests that match today's baseline definition (sets, reps, ball weight,
+     * rest mode) and have a time to target, oldest first. Only these are compared with each other.
      */
     fun baselines(sessions: List<Session>, s: UserSettings): List<Session> = sessions
         .filter {
@@ -27,6 +27,7 @@ object Progress {
                 it.targetReps == s.baselineReps &&
                 it.ballWeightLbs == s.baselineBallLbs &&
                 (it.plannedSets == 0 || it.plannedSets == s.baselineSets) &&
+                it.restUntilTarget == s.baselineRestUntilTarget &&
                 it.avgTimeToTarget(s.recoveryTargetHr) != null
         }
         .sortedBy { it.startMillis }
