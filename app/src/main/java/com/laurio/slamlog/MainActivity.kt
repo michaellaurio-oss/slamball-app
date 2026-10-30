@@ -14,6 +14,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,7 +77,16 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
     val requestPermissions = { launcher.launch(neededPermissions()) }
 
     LaunchedEffect(Unit) {
-        if (vm.hasBluetoothPermission() && vm.hasMicPermission()) vm.onPermissionsResult() else requestPermissions()
+        vm.refreshPermissions()
+        if (!vm.hasBluetoothPermission() || !vm.hasMicPermission()) requestPermissions()
+    }
+
+    // Permissions can be changed in system settings while the app is in the background.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val obs = LifecycleEventObserver { _, e -> if (e == Lifecycle.Event.ON_RESUME) vm.refreshPermissions() }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
     }
 
     // Move between screens as the workout progresses.

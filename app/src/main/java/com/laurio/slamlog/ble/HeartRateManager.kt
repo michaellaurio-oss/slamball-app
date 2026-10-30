@@ -12,7 +12,11 @@ import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import androidx.core.content.ContextCompat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -61,6 +65,36 @@ class HeartRateManager(context: Context, private val store: SettingsStore) {
     val hasSavedStrap: Boolean get() = store.deviceAddress != null
 
     fun isBluetoothOn(): Boolean = adapter?.isEnabled == true
+
+    private val _bluetoothOn = MutableStateFlow(isBluetoothOn())
+    /** Follows Bluetooth being switched on or off, so the screen can update right away. */
+    val bluetoothOn: StateFlow<Boolean> = _bluetoothOn
+
+    /** Set by the owner once the Bluetooth permission is granted; used to auto-reconnect. */
+    @Volatile var canConnect = false
+
+    private val btReceiver = object : BroadcastReceiver() {
+        override fun onReceive(c: Context, intent: Intent) {
+            val st = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
+            _bluetoothOn.value = st == BluetoothAdapter.STATE_ON
+            when (st) {
+                BluetoothAdapter.STATE_ON -> if (canConnect) autoConnect()
+                BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_OFF -> {
+                    stopScan()
+                    closeGatt()
+                    _heartRate.value = null
+                    _state.value = State.IDLE
+                }
+            }
+        }
+    }
+
+    init {
+        ContextCompat.registerReceiver(
+            appContext, btReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+    }
 
     /** Latest heart rate, or null if the strap hasn't sent a valid reading in the last 5 seconds. */
     fun currentBpm(): Int? {
@@ -176,6 +210,7 @@ class HeartRateManager(context: Context, private val store: SettingsStore) {
     }
 
     fun release() {
+        runCatching { appContext.unregisterReceiver(btReceiver) }
         stopScan()
         disconnect()
     }

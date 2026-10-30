@@ -132,9 +132,22 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     private fun granted(p: String) =
         ContextCompat.checkSelfPermission(getApplication(), p) == PackageManager.PERMISSION_GRANTED
 
-    fun onPermissionsResult() {
-        if (hasBluetoothPermission()) hr.autoConnect()
+    data class Permissions(val bluetooth: Boolean, val mic: Boolean)
+
+    private val _permissions = MutableStateFlow(Permissions(false, false))
+    /** Current permission state; refreshed after the permission prompt and whenever the app resumes. */
+    val permissions: StateFlow<Permissions> = _permissions
+
+    /** Re-check permissions (e.g. after the user changed them in system settings). */
+    fun refreshPermissions() {
+        val p = Permissions(hasBluetoothPermission(), hasMicPermission())
+        val newlyBluetooth = p.bluetooth && !_permissions.value.bluetooth
+        _permissions.value = p
+        hr.canConnect = p.bluetooth
+        if (newlyBluetooth) hr.autoConnect()
     }
+
+    fun onPermissionsResult() = refreshPermissions()
 
     // ---------- Mic test (Settings screen) ----------
 

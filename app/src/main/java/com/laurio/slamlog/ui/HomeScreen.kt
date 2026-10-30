@@ -50,6 +50,8 @@ fun HomeScreen(
     val cfg by vm.config.collectAsState()
     val settings by vm.settings.collectAsState()
     val sessions by vm.sessions.collectAsState()
+    val perms by vm.permissions.collectAsState()
+    val bluetoothOn by vm.hr.bluetoothOn.collectAsState()
 
     Column(
         Modifier
@@ -93,10 +95,10 @@ fun HomeScreen(
                 }
             }
 
-            if (!vm.hasBluetoothPermission()) {
+            if (!perms.bluetooth) {
                 Text("Slam Log needs the Nearby devices permission to reach your strap.", color = MaterialTheme.colorScheme.error)
                 Button(onClick = onRequestPermissions) { Text("Allow permissions") }
-            } else if (!vm.hr.isBluetoothOn()) {
+            } else if (!bluetoothOn) {
                 Text("Bluetooth is off. Turn it on in your phone's quick settings.", color = MaterialTheme.colorScheme.error)
             }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -202,7 +204,7 @@ fun HomeScreen(
                 }
                 Switch(checked = cfg.autoCount, onCheckedChange = {
                     vm.updateConfig(cfg.copy(autoCount = it))
-                    if (it && !vm.hasMicPermission()) onRequestPermissions()
+                    if (it && !perms.mic) onRequestPermissions()
                 })
             }
         }
