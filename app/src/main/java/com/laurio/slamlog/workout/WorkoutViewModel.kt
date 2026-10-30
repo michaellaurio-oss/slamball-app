@@ -106,7 +106,11 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     private var restStartHr = 0
     private var restElapsed = 0
     private var recovery60: Int? = null
-    private var lastRepAt = 0L
+    /** When the latest rep counted from the mic happened (the slam itself, not when it was processed). */
+    private var lastMicRepAt = 0L
+    /** When +1 was last tapped. */
+    private var lastTapAt = 0L
+    private var setStartedAt = 0L
     private var lastSlamAt = 0L
     private var waitingForTarget = false
 
@@ -317,7 +321,9 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             timeToTarget = null,
             holding = false,
         )
-        lastRepAt = 0L
+        lastMicRepAt = 0L
+        lastTapAt = 0L
+        setStartedAt = SystemClock.elapsedRealtime()
         detector.armed = cfg.autoCount && detector.isRunning
         speaker.beepLong()
         speaker.say(if (number == cfg.sets && cfg.sets > 1) "Last set. Go!" else "Set $number. Go!")
@@ -329,17 +335,21 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             speaker.tick()
             return
         }
-        if (_ui.value.phase == Phase.WORK && cfg.autoCount) addRep(1)
+        if (_ui.value.phase == Phase.WORK && cfg.autoCount) addRep(1, fromMic = true)
     }
 
     /** +1 / -1 buttons, and automatic counting. */
-    fun addRep(delta: Int) {
+    fun addRep(delta: Int, fromMic: Boolean = false) {
         val u = _ui.value
         if (u.phase != Phase.WORK) return
         val reps = max(0, u.reps + delta)
         _ui.value = u.copy(reps = reps)
         if (delta <= 0) return
-        lastRepAt = SystemClock.elapsedRealtime()
+        if (fromMic) {
+            lastMicRepAt = detector.lastHitAt.takeIf { it > 0 } ?: SystemClock.elapsedRealtime()
+        } else {
+            lastTapAt = SystemClock.elapsedRealtime()
+        }
 
         val s = _settings.value
         val left = cfg.targetReps - reps
@@ -371,7 +381,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         restElapsed = 0
         recovery60 = null
         // Clock starts at the last slam (or now, if no reps were counted).
-        lastSlamAt = if (lastRepAt > 0) lastRepAt else now
+        lastSlamAt = lastSlamTime(now)
         val sinceSlam = ((now - lastSlamAt) / 1000).toInt()
         // Already at or below the target? Then it took no time. No HR at all? Can't measure.
         val already = bpmNow != null && bpmNow <= target
@@ -422,6 +432,28 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     fun addRestTime(sec: Int) {
         val u = _ui.value
         if (u.phase == Phase.REST) _ui.value = u.copy(secondsLeft = u.secondsLeft + sec)
+    }
+
+    /**
+     * The moment of the set's last slam, which starts the recovery clock.
+     *
+     * - Normally the last rep the mic counted.
+     * - If the mic heard a slam it didn't count (the final slam missed, then fixed with +1 or
+     *   "End set now"), that slam is used instead, but only if it came within [MISSED_SLAM_WINDOW_MS]
+     *   of the last counted one, so setting the ball down afterwards doesn't count.
+     * - With mic counting off, the last +1 tap is the best available.
+     * - With nothing at all, the moment the set ended.
+     */
+    private fun lastSlamTime(now: Long): Long {
+        val micOn = cfg.autoCount && detector.isRunning
+        val counted = if (micOn) lastMicRepAt.takeIf { it > 0 } ?: lastTapAt else lastTapAt
+        val heard = detector.lastHitAt.takeIf { micOn && it > setStartedAt && it <= now }
+        return when {
+            heard != null && counted == 0L -> heard
+            heard != null && heard > counted && heard - counted <= MISSED_SLAM_WINDOW_MS -> heard
+            counted > 0L -> counted
+            else -> now
+        }
     }
 
     private fun setLastSet(sets: List<SetResult>, change: (SetResult) -> SetResult): List<SetResult> =
@@ -541,5 +573,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         private const val GET_READY_SEC = 10
         private const val MAX_RECOVERY_SEC = 300
         private const val GO_AFTER_TARGET_SEC = 5
+        /** A missed final slam comes within a few seconds of the one before it. */
+        private const val MISSED_SLAM_WINDOW_MS = 4_000L
     }
 }

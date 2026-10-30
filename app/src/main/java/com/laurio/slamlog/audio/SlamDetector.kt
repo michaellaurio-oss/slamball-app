@@ -32,6 +32,13 @@ class SlamDetector(
     /** Only report slams when armed (during a set or a mic test). */
     @Volatile var armed = false
 
+    /**
+     * When the most recent slam was heard (SystemClock.elapsedRealtime), whether or not it was
+     * counted. Used to start the recovery clock at the true last slam.
+     */
+    @Volatile var lastHitAt = 0L
+        private set
+
     private val _level = MutableStateFlow(0f)
     /** Current loudness 0..1, for the on-screen meter. */
     val level: StateFlow<Float> = _level
@@ -110,6 +117,7 @@ class SlamDetector(
                 val hit = rms > rmsThreshold && peak > peakThreshold
                 if (hit && now - lastHit > REFRACTORY_MS) {
                     lastHit = now
+                    lastHitAt = now
                     if (armed) onSlam()
                 }
                 // Keep learning the background level, but not from slams or their echoes.
