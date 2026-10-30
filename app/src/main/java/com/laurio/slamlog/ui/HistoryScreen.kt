@@ -14,7 +14,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.platform.LocalContext
+import android.content.ClipData
 import android.content.Intent
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,7 +40,7 @@ fun HistoryScreen(
     sessions: List<Session>,
     onOpen: (Session) -> Unit,
     onTrends: () -> Unit,
-    onExport: () -> String,
+    onExport: () -> File,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -68,16 +71,20 @@ fun HistoryScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = onTrends, modifier = Modifier.weight(1f)) { Text("See trends") }
                         OutlinedButton(onClick = {
+                            val file = onExport()
+                            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
                             val send = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_SUBJECT, "Slam Log workouts (CSV)")
-                                putExtra(Intent.EXTRA_TEXT, onExport())
+                                type = "text/csv"
+                                putExtra(Intent.EXTRA_SUBJECT, "Slam Log workouts")
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                clipData = ClipData.newRawUri(file.name, uri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
                             context.startActivity(Intent.createChooser(send, "Export workouts"))
                         }, modifier = Modifier.weight(1f)) { Text("Export") }
                     }
                     Text(
-                        "Export sends every set as a spreadsheet (CSV): email it to yourself or save it to Drive, " +
+                        "Export shares every set as a spreadsheet file (CSV): email it to yourself or save it to Drive, " +
                             "then you can open it in Excel or share it with Claude.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

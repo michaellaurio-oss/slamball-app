@@ -25,6 +25,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -510,8 +514,16 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         return updated
     }
 
-    /** All workouts as a spreadsheet (CSV), one row per set. */
-    fun exportCsv(): String = buildCsv(_sessions.value)
+    /**
+     * Writes all workouts to a CSV file (one row per set) in the app's cache and returns it,
+     * ready to share. Older exports are removed so the cache doesn't grow.
+     */
+    fun exportCsvFile(): File {
+        val dir = File(getApplication<Application>().cacheDir, "exports").apply { mkdirs() }
+        dir.listFiles()?.forEach { it.delete() }
+        val stamp = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        return File(dir, "slam-log-workouts-$stamp.csv").apply { writeText(buildCsv(_sessions.value)) }
+    }
 
     fun deleteSession(id: Long) {
         sessionStore.delete(id)

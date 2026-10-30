@@ -133,7 +133,7 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
                 sessions = sessions,
                 onOpen = { shown = it; screen = Screen.SUMMARY },
                 onTrends = { screen = Screen.TRENDS },
-                onExport = { vm.exportCsv() },
+                onExport = { vm.exportCsvFile() },
                 onBack = { screen = Screen.HOME },
             )
             Screen.TRENDS -> TrendsScreen(
