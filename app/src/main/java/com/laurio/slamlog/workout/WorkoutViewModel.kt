@@ -132,6 +132,10 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
     fun hasMicPermission() = granted(Manifest.permission.RECORD_AUDIO)
 
+    /** Android 13+: needed to show the workout notification (the workout is protected either way). */
+    fun hasNotificationPermission() =
+        Build.VERSION.SDK_INT < 33 || granted(Manifest.permission.POST_NOTIFICATIONS)
+
     fun hasBluetoothPermission() =
         if (Build.VERSION.SDK_INT >= 31) {
             granted(Manifest.permission.BLUETOOTH_SCAN) && granted(Manifest.permission.BLUETOOTH_CONNECT)
@@ -241,8 +245,42 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
                 next += 1000
                 delay(max(0L, next - SystemClock.elapsedRealtime()))
                 tick()
+                pushStatus()
             }
         }
+        // Keep the workout alive if the app goes to the background (switching apps, screen off).
+        WorkoutService.start(
+            getApplication(),
+            mic = cfg.autoCount && detector.isRunning,
+            bluetooth = hasBluetoothPermission(),
+            text = statusText(_ui.value),
+        )
+    }
+
+    /** Ongoing notification text for the foreground service. */
+    private fun statusText(u: WorkoutUi): String = when (u.phase) {
+        Phase.GET_READY -> "Get ready · ${u.secondsLeft} s"
+        Phase.WORK -> "Set ${u.setNumber} of ${u.totalSets} · ${u.reps}/${u.targetReps} reps"
+        Phase.REST ->
+            if (u.holding) "Rest · waiting for ${u.targetHr} bpm · ${mmss(u.sinceSlamSec)} since last slam"
+            else "Rest · ${mmss(u.secondsLeft)} · next: set ${u.setNumber + 1} of ${u.totalSets}"
+        Phase.RECOVERY -> "Recovery check · stand still"
+        else -> "Workout in progress"
+    }
+
+    private var lastStatus = ""
+
+    private fun pushStatus() {
+        val text = statusText(_ui.value)
+        if (text != lastStatus) {
+            lastStatus = text
+            WorkoutService.update(getApplication(), text)
+        }
+    }
+
+    private fun stopService() {
+        lastStatus = ""
+        WorkoutService.stop(getApplication())
     }
 
     private fun tick() {
@@ -372,6 +410,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             left == 3 && cfg.targetReps > 3 -> speaker.threeLeft()
             _settings.value.repTick -> speaker.tick()
         }
+        pushStatus()
     }
 
     private fun currentSetResult(u: WorkoutUi) = SetResult(
@@ -503,6 +542,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun cancel() {
         ticker?.cancel()
+        stopService()
         detector.armed = false
         detector.stop()
         _ui.value = WorkoutUi()
@@ -512,6 +552,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     private fun finish() {
         closeRecoveryForLastSet()
         ticker?.cancel()
+        stopService()
         detector.armed = false
         detector.stop()
         val u = _ui.value
@@ -578,6 +619,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         ticker?.cancel()
+        stopService()
         detector.stop()
         hr.release()
         speaker.shutdown()

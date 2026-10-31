@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Notification icon: a slam ball (white, the system tints it). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2A10,10 0,1 0,12 22A10,10 0,1 0,12 2ZM12,4C13.6,4 15.1,4.5 16.3,5.3C14.6,6.9 13.3,9 12.7,11.3L4.1,11.3C4.4,7.2 7.8,4 12,4ZM17.7,6.5C19.1,8 19.9,9.9 20,12L14.8,12.6C15.2,10.3 16.3,8.2 17.7,6.5ZM4.1,13.3L12.6,13.3C13,15.6 14,17.8 15.6,19.4C14.5,19.8 13.3,20 12,20C7.9,20 4.5,17.1 4.1,13.3ZM14.7,14.6L19.8,14C19.2,16 17.9,17.7 17.2,18.4C15.9,17.4 15,16 14.7,14.6Z" />
+</vector>

@@ -64,6 +64,8 @@ private fun neededPermissions(): Array<String> = buildList {
         add(Manifest.permission.ACCESS_FINE_LOCATION)
     }
     add(Manifest.permission.RECORD_AUDIO)
+    // The "workout in progress" notification (Android 13+)
+    if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
 }.toTypedArray()
 
 @Composable
@@ -85,7 +87,7 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
 
     LaunchedEffect(Unit) {
         vm.refreshPermissions()
-        if (!vm.hasBluetoothPermission() || !vm.hasMicPermission()) requestPermissions()
+        if (!vm.hasBluetoothPermission() || !vm.hasMicPermission() || !vm.hasNotificationPermission()) requestPermissions()
     }
 
     // Permissions can be changed in system settings while the app is in the background.

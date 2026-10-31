@@ -116,8 +116,10 @@ wiping its history.
 - If the strap stops sending heart rate during a rest for 15 s, the app stops waiting for the target
   ("Lost heart rate") and moves on, instead of holding the rest.
 - Loud music or other people slamming nearby can add extra reps: use −1, or lower sensitivity.
-- The screen stays on during a workout. Keep the app open; if Android kills it in the background, the
-  workout in progress is lost.
+- The screen stays on during a workout. If you switch apps or the screen goes off, the workout keeps
+  running: a "workout in progress" notification shows the current set or rest, and tapping it brings
+  you back. (Allow notifications when asked, so you can see it.) Swiping Slam Log away from recent
+  apps still ends the workout.
 
 ## Project layout
 

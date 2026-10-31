@@ -40,6 +40,9 @@ Single-activity Jetpack Compose app, no DI, no database library.
 - `audio/SlamDetector.kt`: AudioRecord at 16 kHz, 20 ms frames, adaptive noise floor, 700 ms
   refractory period; requires louder hits while `Speaker.isBusy()`.
 - `audio/Speaker.kt`: TextToSpeech + ToneGenerator.
+- `workout/WorkoutService.kt`: foreground service (microphone|connectedDevice) + partial wake lock while a
+  workout runs, so it survives switching apps / screen off. Holds no state: the VM starts it in
+  `startWorkout()`, updates the notification via `pushStatus()`, stops it in `finish()`/`cancel()`/`onCleared()`.
 - `data/`: `Models.kt` (JSON (de)serialization, so new fields must default safely for old saved
   workouts), `SessionStore.kt` (sessions.json in app storage), `SettingsStore.kt` (SharedPreferences).
 - `ui/`: one file per screen (personal details live on `AboutYouScreen`, opened from Settings; the baseline test has
