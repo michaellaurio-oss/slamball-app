@@ -189,8 +189,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
                 ballWeightLbs = s.baselineBallLbs,
                 autoCount = _config.value.autoCount,
                 restUntilTarget = s.baselineRestUntilTarget,
-                // No time limit: every baseline set waits for the target, so every set gets a time.
-                maxRestSec = 0,
+                minRestSec = _config.value.minRestSec,
             ),
             baseline = true,
         )
@@ -270,8 +269,10 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
             Phase.REST, Phase.RECOVERY -> {
                 restElapsed++
+                // Rest-until-target: once the minimum rest is down to the 5-second go countdown, hold
+                // there until HR reaches the target (rest = minimum or target, whichever is longer).
                 val holding = u.phase == Phase.REST && cfg.restUntilTarget && waitingForTarget &&
-                    restElapsed < holdLimitSec()
+                    u.secondsLeft <= GO_AFTER_TARGET_SEC && restElapsed < MAX_RECOVERY_SEC
                 val left = if (holding) u.secondsLeft else u.secondsLeft - 1
                 val drop = if (bpm != null && restStartHr > 0) restStartHr - bpm else null
                 if (restElapsed == 60 && drop != null) {
@@ -287,16 +288,12 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
                         completedSets = setLastSet(next.completedSets) { it.copy(timeToTargetSec = sinceSlam) },
                     )
                     speaker.say("${u.targetHr} in ${spokenTime(sinceSlam)}.")
-                    if (u.phase == Phase.REST && cfg.restUntilTarget) {
-                        next = next.copy(holding = false, secondsLeft = minOf(next.secondsLeft, GO_AFTER_TARGET_SEC))
-                    }
-                } else if (u.holding && !holding && u.phase == Phase.REST) {
-                    // Hit the max rest before HR reached the target: 5 s to go, and this set gets no time.
-                    speaker.say("Time. No ${u.targetHr} this set.")
+                    // Rest carries on to the end of the minimum; if it was already held, 5 s to go.
+                    if (u.phase == Phase.REST) next = next.copy(holding = false)
                 }
                 _ui.value = next
                 if (u.phase == Phase.REST) {
-                    if (left == 10 && cfg.restSec > 20) speaker.say("10 seconds.")
+                    if (left == 10 && !(cfg.restUntilTarget && waitingForTarget)) speaker.say("10 seconds.")
                     if (left in 1..3) speaker.beepShort()
                     if (left <= 0) startSet()
                 } else if ((left <= 0 && !waitingForTarget) || restElapsed >= MAX_RECOVERY_SEC) {
@@ -405,26 +402,12 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             _ui.value = common.copy(phase = Phase.RECOVERY, secondsLeft = 60)
             speaker.say("Workout complete. Stand still for the recovery check.")
         } else {
-            val restLen = when {
-                !cfg.restUntilTarget -> cfg.restSec
-                waitingForTarget -> GO_AFTER_TARGET_SEC // held here until HR reaches the target
-                already -> 10                           // already below target: short breather
-                else -> noHrRestSec()                    // no heart rate: fall back to a timed rest
-            }
-            _ui.value = common.copy(phase = Phase.REST, secondsLeft = restLen, holding = cfg.restUntilTarget && waitingForTarget)
+            // Rest until target: the minimum rest counts down, then holds if HR isn't there yet.
+            val restLen = if (cfg.restUntilTarget) cfg.minRestSec else cfg.restSec
+            _ui.value = common.copy(phase = Phase.REST, secondsLeft = restLen, holding = false)
             speaker.say("Set ${u.setNumber} done. ${u.reps} reps. Rest.")
         }
     }
-
-    /**
-     * Rest-until-target mode: how long rest waits for the target before the 5-second go countdown, so
-     * the whole rest never runs past the max rest. No max rest (baseline) waits up to 5 minutes.
-     */
-    private fun holdLimitSec(): Int =
-        if (cfg.maxRestSec > 0) (cfg.maxRestSec - GO_AFTER_TARGET_SEC).coerceAtLeast(0) else MAX_RECOVERY_SEC
-
-    /** Rest when there's no heart rate to wait on. */
-    private fun noHrRestSec(): Int = if (cfg.restUntilTarget && cfg.maxRestSec > 0) cfg.maxRestSec else cfg.restSec
 
     fun skipRest() {
         when (_ui.value.phase) {

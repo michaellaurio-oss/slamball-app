@@ -16,11 +16,10 @@ your recovery target (130 bpm by default; change it in Settings). You see it:
 The final set is measured too: the recovery check after it runs at least a minute, and on until you
 reach the target (up to 5 minutes).
 
-**Rest until HR ≤ 130** (Home screen switch): instead of a fixed rest, the next set starts 5 seconds
-after you hit the target, or when the **max rest** runs out (90 s by default; set it on the Home
-screen), whichever comes first. A set that hits the max rest before 130 gets no time-to-130, and is
-left out of the averages. The baseline test has no max rest: it always waits for 130, so every
-baseline set gets a time.
+**Rest until HR ≤ 130** (Home screen switch): instead of a fixed rest,
+rest lasts a **minimum rest** (60 s by default; set it on the Home screen) or until you're down to
+130, whichever is longer. If you're not at 130 when the minimum runs out, the clock holds and counts
+up until you are, then gives you 5 seconds to go. Every set gets a time-to-130.
 
 ## Baseline test: is my recovery improving?
 

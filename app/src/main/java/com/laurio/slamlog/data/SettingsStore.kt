@@ -48,7 +48,7 @@ class SettingsStore(context: Context) {
         ballWeightLbs = p.getInt("ballWeightLbs", 20),
         autoCount = p.getBoolean("autoCount", true),
         restUntilTarget = p.getBoolean("restUntilTarget", false),
-        maxRestSec = p.getInt("maxRestSec", 90),
+        minRestSec = p.getInt("minRestSec", 60),
     )
 
     fun saveConfig(c: WorkoutConfig) {
@@ -59,7 +59,7 @@ class SettingsStore(context: Context) {
             .putInt("ballWeightLbs", c.ballWeightLbs)
             .putBoolean("autoCount", c.autoCount)
             .putBoolean("restUntilTarget", c.restUntilTarget)
-            .putInt("maxRestSec", c.maxRestSec)
+            .putInt("minRestSec", c.minRestSec)
             .apply()
     }
 
