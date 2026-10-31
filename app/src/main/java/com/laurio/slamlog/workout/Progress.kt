@@ -19,7 +19,7 @@ object Progress {
 
     /**
      * Finished baseline tests that match today's baseline definition (sets, reps, ball weight,
-     * rest mode) and have a time to target, oldest first. Only these are compared with each other.
+     * rest mode and minimum rest) and have a time to target, oldest first. Only these are compared with each other.
      */
     fun baselines(sessions: List<Session>, s: UserSettings): List<Session> = sessions
         .filter {
@@ -28,6 +28,7 @@ object Progress {
                 it.ballWeightLbs == s.baselineBallLbs &&
                 (it.plannedSets == 0 || it.plannedSets == s.baselineSets) &&
                 it.restUntilTarget == s.baselineRestUntilTarget &&
+                (!s.baselineRestUntilTarget || it.minRestSec == s.baselineMinRestSec) &&
                 it.avgTimeToTarget(s.recoveryTargetHr) != null
         }
         .sortedBy { it.startMillis }

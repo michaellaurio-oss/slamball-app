@@ -189,7 +189,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
                 ballWeightLbs = s.baselineBallLbs,
                 autoCount = _config.value.autoCount,
                 restUntilTarget = s.baselineRestUntilTarget,
-                minRestSec = _config.value.minRestSec,
+                minRestSec = s.baselineMinRestSec,
             ),
             baseline = true,
         )
@@ -516,6 +516,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             baseline = isBaseline,
             plannedSets = cfg.sets,
             restUntilTarget = cfg.restUntilTarget,
+            minRestSec = if (cfg.restUntilTarget) cfg.minRestSec else 0,
         )
         sessionStore.save(session)
         _sessions.value = sessionStore.load()

@@ -26,7 +26,8 @@ up until you are, then gives you 5 seconds to go. Every set gets a time-to-130.
 Training workouts get bigger over time (more reps per set), and bigger sets take longer to recover from,
 so they can't answer "is my recovery improving?" on their own. The **baseline test** can.
 
-- It's the same workout every time: **10 sets × 20 reps**, same ball, resting until HR ≤ 130.
+- It's the same workout every time: **10 sets × 20 reps**, same ball, resting at least 60 s and until
+  HR ≤ 130. The baseline has its own minimum rest, so changing the Home screen's doesn't affect it.
   Start it from the Baseline test card on the Home screen. Its definition lives in
   Settings → Baseline test; only tests that match the current definition are compared.
 - Repeat it every couple of weeks. Trends → **Is my recovery improving?** compares the latest baseline

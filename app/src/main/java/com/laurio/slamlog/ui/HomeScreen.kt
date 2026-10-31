@@ -139,7 +139,7 @@ fun HomeScreen(
             Label("Baseline test")
             Text(
                 "${settings.baselineSets} × ${settings.baselineReps} · ${settings.baselineBallLbs} lb" +
-                    if (settings.baselineRestUntilTarget) " · rest until HR ≤ $target" else "",
+                    if (settings.baselineRestUntilTarget) " · rest ${mmss(settings.baselineMinRestSec)}+ until HR ≤ $target" else "",
                 fontWeight = FontWeight.Bold, fontSize = 18.sp,
             )
             Text(

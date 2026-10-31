@@ -45,6 +45,8 @@ data class UserSettings(
     val baselineReps: Int = 20,
     val baselineBallLbs: Int = 20,
     val baselineRestUntilTarget: Boolean = true,
+    /** Baseline's own minimum rest (rest-until-target mode), separate from the Home screen's. */
+    val baselineMinRestSec: Int = 60,
 ) {
     val birthday: LocalDate?
         get() = birthDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
@@ -127,6 +129,8 @@ data class Session(
     /** How many sets were planned; a baseline only counts if they were all done. */
     val plannedSets: Int = 0,
     val restUntilTarget: Boolean = false,
+    /** Minimum rest in rest-until-target mode; 0 = not recorded (older workouts) or a timed rest. */
+    val minRestSec: Int = 0,
 ) {
     val totalReps: Int get() = sets.sumOf { it.reps }
 
@@ -162,6 +166,7 @@ data class Session(
         .put("baseline", baseline)
         .put("plannedSets", plannedSets)
         .put("restUntilTarget", restUntilTarget)
+        .put("minRestSec", minRestSec)
 
     companion object {
         fun fromJson(o: JSONObject): Session {
@@ -184,6 +189,7 @@ data class Session(
                 baseline = o.optBoolean("baseline", false),
                 plannedSets = o.optInt("plannedSets", 0),
                 restUntilTarget = o.optBoolean("restUntilTarget", false),
+                minRestSec = o.optInt("minRestSec", 0),
             )
         }
     }

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.laurio.slamlog.data.UserSettings
 import com.laurio.slamlog.workout.WorkoutViewModel
+import com.laurio.slamlog.workout.mmss
 import android.app.DatePickerDialog
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -142,6 +143,11 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onBac
                 onPlus = { vm.updateSettings(s.copy(baselineBallLbs = (s.baselineBallLbs + 5).coerceAtMost(150))) })
             SwitchRow("Rest until HR ≤ ${s.recoveryTargetHr}", "Each set starts from the same heart rate, so every set gets timed", s.baselineRestUntilTarget) {
                 vm.updateSettings(s.copy(baselineRestUntilTarget = it))
+            }
+            if (s.baselineRestUntilTarget) {
+                Stepper("Minimum rest", mmss(s.baselineMinRestSec),
+                    onMinus = { vm.updateSettings(s.copy(baselineMinRestSec = (s.baselineMinRestSec - 15).coerceAtLeast(15))) },
+                    onPlus = { vm.updateSettings(s.copy(baselineMinRestSec = (s.baselineMinRestSec + 15).coerceAtMost(600))) })
             }
             Text(
                 "Set this once and leave it alone. Only baseline tests that match these numbers are compared, " +

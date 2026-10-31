@@ -16,7 +16,8 @@ He is the only user. Explain build and install steps plainly; he is not a day-to
   beep at 3 reps left, plus the optional per-rep click. `UserSettings.callEvery` is unused.
 - Rest-until-target rest lasts `WorkoutConfig.minRestSec` (default 60) or until HR reaches the target,
   whichever is longer: the countdown holds at 5 s until the target, then goes (5 min cap). The baseline
-  test uses the same minimum.
+  test uses its own `UserSettings.baselineMinRestSec` (default 60); `Session.minRestSec` records it and
+  `Progress.baselines` only compares matching tests (older workouts have 0, so they don't match).
 - Age comes from the stored birthday (`UserSettings.birthDate`), never a stored age.
 
 ## Architecture
