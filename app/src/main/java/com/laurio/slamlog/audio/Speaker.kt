@@ -68,12 +68,12 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     fun beepLong() = play(ToneGenerator.TONE_DTMF_9, 500)
 
     /**
-     * 3 reps left in the set: a quick rising three-note chime, higher and more musical than any of
-     * the DTMF beeps, so it can't be mistaken for them. About a third of a second.
+     * 3 reps left in the set: a boxing-ring bell, three quick strikes ("ding-ding-ding") that ring out.
+     * About a second long; the mic needs a louder hit to count while it rings.
      */
     fun threeLeft() {
-        val track = chime ?: return play(ToneGenerator.TONE_PROP_BEEP2, 200)
-        markBusy(CHIME_MS + 250L)
+        val track = bell ?: return play(ToneGenerator.TONE_PROP_BEEP2, 200)
+        markBusy(BELL_MS + 150L)
         runCatching {
             track.stop()
             track.reloadStaticData()
@@ -81,25 +81,36 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         }
     }
 
-    /** The 3-left chime, synthesized once: E6, G6, C7, each with a short fade so it doesn't click. */
-    private val chime: AudioTrack? = runCatching {
+    /**
+     * The bell, synthesized once. Each strike is a few inharmonic partials (what makes it sound like
+     * metal rather than a beep), higher ones dying away faster, plus a tiny click for the hammer hit.
+     */
+    private val bell: AudioTrack? = runCatching {
         val rate = 44_100
-        val noteMs = 90
-        val gapMs = 25
-        val notes = doubleArrayOf(1318.5, 1568.0, 2093.0)
-        val noteLen = rate * noteMs / 1000
-        val gapLen = rate * gapMs / 1000
-        val fade = rate * 8 / 1000
-        val pcm = ShortArray(notes.size * noteLen + (notes.size - 1) * gapLen)
-        var pos = 0
-        notes.forEachIndexed { n, hz ->
-            for (i in 0 until noteLen) {
-                val env = minOf(1.0, i / fade.toDouble(), (noteLen - i) / fade.toDouble())
-                val loud = if (n == notes.lastIndex) 0.85 else 0.7 // last note a bit louder
-                pcm[pos + i] = (Math.sin(2 * Math.PI * hz * i / rate) * env * loud * Short.MAX_VALUE).toInt().toShort()
+        val total = rate * BELL_MS / 1000
+        val mix = DoubleArray(total)
+        val f0 = 830.0
+        val partials = doubleArrayOf(1.0, 2.0, 2.42, 2.93, 4.07, 5.41)
+        val amps = doubleArrayOf(1.0, 0.55, 0.45, 0.3, 0.2, 0.12)
+        val decay = doubleArrayOf(0.30, 0.22, 0.18, 0.14, 0.10, 0.07) // seconds to fall to ~37%
+        val rnd = java.util.Random(7)
+        for (k in 0 until STRIKES) {
+            val start = rate * k * STRIKE_GAP_MS / 1000
+            for (i in 0 until total - start) {
+                val t = i / rate.toDouble()
+                var v = 0.0
+                for (j in partials.indices) {
+                    v += amps[j] * Math.exp(-t / decay[j]) * Math.sin(2 * Math.PI * f0 * partials[j] * t)
+                }
+                if (i < rate / 200) v += (rnd.nextDouble() * 2 - 1) * 0.6 * (1 - i / (rate / 200.0)) // hammer click
+                mix[start + i] += v
             }
-            pos += noteLen + gapLen
         }
+        // Fade the very end to silence and normalize to a loud but unclipped level.
+        val tail = rate * 60 / 1000
+        for (i in 0 until tail) mix[total - 1 - i] *= i / tail.toDouble()
+        val peak = mix.maxOf { Math.abs(it) }.coerceAtLeast(1e-9)
+        val pcm = ShortArray(total) { (mix[it] / peak * 0.92 * Short.MAX_VALUE).toInt().toShort() }
         AudioTrack.Builder()
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -141,10 +152,12 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         runCatching { tts.stop() }
         runCatching { tts.shutdown() }
         tone?.release()
-        chime?.release()
+        bell?.release()
     }
 
     private companion object {
-        const val CHIME_MS = 3 * 90 + 2 * 25
+        const val STRIKES = 3
+        const val STRIKE_GAP_MS = 190
+        const val BELL_MS = (STRIKES - 1) * STRIKE_GAP_MS + 650
     }
 }

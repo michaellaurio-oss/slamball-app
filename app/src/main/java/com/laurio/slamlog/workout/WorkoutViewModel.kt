@@ -355,7 +355,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         // No speech while slamming: the phone's own voice makes the mic harder to trigger.
-        // Just a short chime when 3 reps are left, and the optional click per rep.
+        // Just a boxing-ring bell when 3 reps are left, and the optional click per rep.
         val left = cfg.targetReps - reps
         when {
             left <= 0 -> endSet()

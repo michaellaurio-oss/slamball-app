@@ -123,7 +123,7 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onAbo
                 vm.updateSettings(s.copy(slamEffects = it))
             }
             Text(
-                "During a set there's no talking, so the mic hears every slam: just a rising three-note chime " +
+                "During a set there's no talking, so the mic hears every slam: just a boxing-ring bell " +
                     "when 3 reps are left.",
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
