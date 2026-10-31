@@ -22,16 +22,30 @@ object Progress {
      * rest mode, minimum rest) and have a time to the baseline target, oldest first. Only these are compared with each other.
      */
     fun baselines(sessions: List<Session>, s: UserSettings): List<Session> = sessions
-        .filter {
-            it.baseline && it.completed &&
-                it.targetReps == s.baselineReps &&
-                it.ballWeightLbs == s.baselineBallLbs &&
-                (it.plannedSets == 0 || it.plannedSets == s.baselineSets) &&
-                it.restUntilTarget == s.baselineRestUntilTarget &&
-                (!s.baselineRestUntilTarget || it.minRestSec == s.baselineMinRestSec) &&
-                it.avgTimeToTarget(s.baselineTargetHr) != null
-        }
+        .filter { it.baseline && whyNotCompared(it, s) == null }
         .sortedBy { it.startMillis }
+
+    /**
+     * Why a baseline test isn't in the comparison (it doesn't match the current baseline settings),
+     * or null if it is. Workouts saved before the minimum rest was recorded (0) are allowed.
+     */
+    fun whyNotCompared(t: Session, s: UserSettings): String? = when {
+        !t.completed -> "not every set was finished"
+        t.targetReps != s.baselineReps -> "${t.targetReps} reps per set (baseline is ${s.baselineReps})"
+        t.ballWeightLbs != s.baselineBallLbs -> "${t.ballWeightLbs} lb ball (baseline is ${s.baselineBallLbs} lb)"
+        t.plannedSets != 0 && t.plannedSets != s.baselineSets -> "${t.plannedSets} sets (baseline is ${s.baselineSets})"
+        t.restUntilTarget != s.baselineRestUntilTarget -> "a different rest mode"
+        s.baselineRestUntilTarget && t.minRestSec != 0 && t.minRestSec != s.baselineMinRestSec ->
+            "${mmss(t.minRestSec)} minimum rest (baseline is ${mmss(s.baselineMinRestSec)})"
+        t.avgTimeToTarget(s.baselineTargetHr) == null -> "no time to ${s.baselineTargetHr} (timed to a different target, or HR never got there)"
+        else -> null
+    }
+
+    /** Baseline tests left out of the comparison, each with the reason, newest first. */
+    fun excludedBaselines(sessions: List<Session>, s: UserSettings): List<Pair<Session, String>> = sessions
+        .filter { it.baseline }
+        .mapNotNull { t -> whyNotCompared(t, s)?.let { t to it } }
+        .sortedByDescending { it.first.startMillis }
 
     /**
      * Compares recent baseline tests with early ones. With 4 or more tests it averages the first two
@@ -42,7 +56,7 @@ object Progress {
         if (baselines.isEmpty()) {
             return Verdict(
                 "No baseline test yet",
-                "Run a baseline test from the Home screen. It's the same workout every time, so it's a fair " +
+                "Tap BASELINE on the Home screen to run one. It's the same workout every time, so it's a fair " +
                     "yardstick. Repeat it every couple of weeks.",
                 null,
             )

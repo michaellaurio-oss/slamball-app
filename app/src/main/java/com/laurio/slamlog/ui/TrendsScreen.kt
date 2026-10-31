@@ -90,6 +90,12 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
                 color = when (verdict.improving) { true -> Mint; false -> Amber; null -> MaterialTheme.colorScheme.onSurface },
             )
             Text(verdict.detail, style = MaterialTheme.typography.bodyMedium)
+            Progress.excludedBaselines(sessions, settings).forEach { (t, why) ->
+                Text(
+                    "Not compared: ${shortDate.format(Date(t.startMillis))} test, $why.",
+                    style = MaterialTheme.typography.bodySmall, color = Amber,
+                )
+            }
             baselines.lastOrNull()?.halves(settings.baselineTargetHr)?.let { h ->
                 Text("Latest test, first half vs second half", fontWeight = FontWeight.SemiBold)
                 HalfTable(h, settings.baselineTargetHr)

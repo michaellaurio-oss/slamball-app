@@ -75,6 +75,12 @@ fun BaselineScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Progress.excludedBaselines(sessions, settings).forEach { (t, why) ->
+                Text(
+                    "A test from ${java.text.SimpleDateFormat("MMM d", java.util.Locale.US).format(java.util.Date(t.startMillis))} isn't compared: $why.",
+                    style = MaterialTheme.typography.bodySmall, color = Amber,
+                )
+            }
             if (baselines.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Stat("latest", mmss(baselines.last().avgTimeToTarget(target)!!.roundToInt()), Modifier.weight(1f), color = Sky)

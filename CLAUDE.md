@@ -17,7 +17,8 @@ He is the only user. Explain build and install steps plainly; he is not a day-to
 - Rest-until-target rest lasts `WorkoutConfig.minRestSec` (default 60) or until HR reaches the target,
   whichever is longer: the countdown holds at 5 s until the target, then goes (5 min cap). The baseline
   test uses its own `UserSettings.baselineMinRestSec` (default 60); `Session.minRestSec` records it and
-  `Progress.baselines` only compares matching tests (older workouts have 0, so they don't match).
+  `Progress.baselines` only compares matching tests (0 = not recorded, from before it was saved; allowed).
+  `Progress.whyNotCompared` gives the reason a baseline is left out; Trends/Baseline screens show it.
 - The baseline also has its own recovery target, `UserSettings.baselineTargetHr` (first load defaults
   to the training `recoveryTargetHr`). `startBaseline()` passes it as `WorkoutConfig.targetHr`; the
   engine uses `targetHr()` (config value, else the training target). Baseline UI/verdict use it.
