@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -19,6 +20,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.laurio.slamlog.ble.HeartRateManager.State
 import com.laurio.slamlog.workout.Physiology
+import com.laurio.slamlog.workout.Progress
 import com.laurio.slamlog.workout.WorkoutViewModel
 import com.laurio.slamlog.workout.mmss
 
@@ -49,6 +54,36 @@ fun HomeScreen(
     val sessions by vm.sessions.collectAsState()
     val perms by vm.permissions.collectAsState()
     val bluetoothOn by vm.hr.bluetoothOn.collectAsState()
+    // The recovery target also times the baseline test, so changing it warns first (once per visit).
+    val baselineCount = Progress.baselines(sessions, settings).size
+    var targetConfirmed by remember { mutableStateOf(false) }
+    var pendingTarget by remember { mutableStateOf<Int?>(null) }
+    fun changeTarget(hr: Int) {
+        if (baselineCount > 0 && !targetConfirmed) pendingTarget = hr
+        else vm.updateSettings(settings.copy(recoveryTargetHr = hr))
+    }
+    pendingTarget?.let { hr ->
+        AlertDialog(
+            onDismissRequest = { pendingTarget = null },
+            title = { Text("Change the recovery target?") },
+            text = {
+                Text(
+                    "The baseline test is timed to this number too. Your $baselineCount baseline " +
+                        "test${if (baselineCount == 1) " was" else "s were"} timed to ${settings.recoveryTargetHr}, so changing it " +
+                        "starts a fresh comparison, and Trends will only chart workouts timed to the new target. " +
+                        "Changing it back brings the earlier ones back."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    targetConfirmed = true
+                    vm.updateSettings(settings.copy(recoveryTargetHr = hr))
+                    pendingTarget = null
+                }) { Text("Change it") }
+            },
+            dismissButton = { TextButton(onClick = { pendingTarget = null }) { Text("Keep ${settings.recoveryTargetHr}") } },
+        )
+    }
 
     Column(
         Modifier
@@ -137,12 +172,21 @@ fun HomeScreen(
             Stepper("Reps per set", "${cfg.targetReps}",
                 onMinus = { vm.updateConfig(cfg.copy(targetReps = (cfg.targetReps - 1).coerceAtLeast(1))) },
                 onPlus = { vm.updateConfig(cfg.copy(targetReps = (cfg.targetReps + 1).coerceAtMost(200))) })
+            Stepper("Recovery target", "${settings.recoveryTargetHr} bpm",
+                onMinus = { changeTarget((settings.recoveryTargetHr - 5).coerceAtLeast(80)) },
+                onPlus = { changeTarget((settings.recoveryTargetHr + 5).coerceAtMost(200)) })
+            Text(
+                "After every set, Slam Log times how long your heart rate takes to fall to this number. " +
+                    "Pick one and stick with it: workouts are only compared at the same target.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Rest until HR ≤ ${settings.recoveryTargetHr}")
                     Text(
                         "Rest lasts the minimum below, or until you're down to ${settings.recoveryTargetHr} " +
-                            "(then 5 s to go), whichever is longer. Change ${settings.recoveryTargetHr} in Settings.",
+                            "(then 5 s to go), whichever is longer.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

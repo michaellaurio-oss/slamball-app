@@ -73,19 +73,6 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onAbo
             }
         }
 
-        // ---- Recovery target ----
-        SectionCard {
-            Label("Recovery target")
-            Stepper("Time from last slam to", "${s.recoveryTargetHr} bpm",
-                onMinus = { vm.updateSettings(s.copy(recoveryTargetHr = (s.recoveryTargetHr - 5).coerceAtLeast(80))) },
-                onPlus = { vm.updateSettings(s.copy(recoveryTargetHr = (s.recoveryTargetHr + 5).coerceAtMost(200))) })
-            Text(
-                "After every set, Slam Log times how long your heart rate takes to fall to this number. " +
-                    "Trends only compare workouts measured against the same target, so pick one and stick with it.",
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
         // ---- Slam detection ----
         SectionCard {
             Label("Slam detection")

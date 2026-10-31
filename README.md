@@ -7,7 +7,7 @@ coaches with voice and beeps, and tracks how fast your heart rate recovers after
 ## The headline metric: last slam → 130
 
 After every set, Slam Log starts a clock at your **last slam** and stops it when your heart rate falls to
-your recovery target (130 bpm by default; change it in Settings). You see it:
+your recovery target (130 bpm by default; change it in the Training workout section on Home). You see it:
 
 - live on the rest screen, counting up, with a voice callout when you hit it ("130 in 48 seconds")
 - per set on the workout summary, plus average, fastest and slowest
