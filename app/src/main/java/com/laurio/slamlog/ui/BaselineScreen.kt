@@ -114,7 +114,7 @@ fun BaselineScreen(
                 .fillMaxWidth()
                 .height(56.dp),
         ) {
-            Text("BASELINE SETTINGS", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("Baseline settings", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
     }

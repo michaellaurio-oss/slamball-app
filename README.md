@@ -30,7 +30,7 @@ so they can't answer "is my recovery improving?" on their own. The **baseline te
   HR ≤ 130. The baseline has its own minimum rest and its own recovery target (both in Baseline
   settings), so changing the training ones on the Home screen doesn't affect it.
   Home → **BASELINE** opens its own screen with your progress and the Start button. Its definition
-  lives under **BASELINE SETTINGS** at the bottom of that screen; only tests that match the current
+  lives under **Baseline settings** at the bottom of that screen; only tests that match the current
   definition are compared.
 - Repeat it every couple of weeks. Trends → **Is my recovery improving?** compares the latest baseline
   with the first one (average time from last slam to 130, plus the first-minute heart rate drop) and
