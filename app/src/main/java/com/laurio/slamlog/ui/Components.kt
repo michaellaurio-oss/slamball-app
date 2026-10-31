@@ -164,3 +164,39 @@ fun ZoneBars(zoneSec: List<Int>) {
         }
     }
 }
+
+/** First half vs second half of a workout: set time, time to target and average HR, with the change. */
+@Composable
+fun HalfTable(h: com.laurio.slamlog.data.HalfStats, target: Int) {
+    fun sec(v: Double?) = v?.let { val r = kotlin.math.round(it).toInt(); if (r < 60) "$r s" else mmss(r) } ?: "—"
+    fun diff(a: Double?, b: Double?, unit: String): String {
+        if (a == null || b == null) return ""
+        val d = kotlin.math.round(b - a).toInt()
+        return when { d > 0 -> "+$d$unit"; d < 0 -> "$d$unit"; else -> "same" }
+    }
+    val head = MaterialTheme.typography.labelMedium
+    Row {
+        Text("", Modifier.weight(1.3f))
+        Text("1st half", Modifier.weight(1f), style = head)
+        Text("2nd half", Modifier.weight(1f), style = head)
+        Text("change", Modifier.weight(1f), style = head)
+    }
+    @Composable
+    fun line(label: String, a: Double?, b: Double?, show: (Double?) -> String, unit: String) {
+        if (a == null && b == null) return
+        Row {
+            Text(label, Modifier.weight(1.3f), fontWeight = FontWeight.SemiBold)
+            Text(show(a), Modifier.weight(1f))
+            Text(show(b), Modifier.weight(1f))
+            val d = diff(a, b, unit)
+            Text(d, Modifier.weight(1f), color = if (d.startsWith("+")) Amber else if (d.startsWith("-")) Mint else MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+    line("Set time", h.setSec1, h.setSec2, ::sec, " s")
+    if (target > 0) line("To $target", h.toTarget1, h.toTarget2, ::sec, " s")
+    line("Avg HR", h.avgHr1, h.avgHr2, { v -> v?.let { "${kotlin.math.round(it).toInt()}" } ?: "—" }, "")
+    Text(
+        "${h.setsEach} sets in each half. Bigger changes mean more fade as the workout goes on.",
+        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}

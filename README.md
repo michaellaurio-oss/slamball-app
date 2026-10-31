@@ -51,6 +51,9 @@ so they can't answer "is my recovery improving?" on their own. The **baseline te
 - **1-minute recovery**: how far heart rate dropped in the first minute after each set.
 - **Time per set** (Trends): how long each finished set takes, start beep to last rep, compared only at
   the same reps per set, with seconds per rep charted over time. Baseline tests show it too.
+- **First half vs second half**: on each workout summary, and in Trends for the latest workout and latest
+  baseline: set time, time to 130 and average HR for the first half of the sets against the second half,
+  plus a chart of how much the second half slows down over time.
 - **Effort rating**: after each workout, rate it 1–10 (easy → all-out). Shown in History and charted
   on Trends.
 - **Calories**, estimated from heart rate, age, weight and sex (Keytel formula).

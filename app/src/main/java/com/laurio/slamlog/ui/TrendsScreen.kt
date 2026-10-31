@@ -90,6 +90,10 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
                 color = when (verdict.improving) { true -> Mint; false -> Amber; null -> MaterialTheme.colorScheme.onSurface },
             )
             Text(verdict.detail, style = MaterialTheme.typography.bodyMedium)
+            baselines.lastOrNull()?.halves(settings.baselineTargetHr)?.let { h ->
+                Text("Latest test, first half vs second half", fontWeight = FontWeight.SemiBold)
+                HalfTable(h, settings.baselineTargetHr)
+            }
             val baselineSetTimes = baselines.mapNotNull { it.avgSetSec }
             if (baselineSetTimes.size >= 2) {
                 Text(
@@ -233,6 +237,19 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
                     )
                     Legend(listOf(Orange to "Seconds per rep (average set ÷ reps)"))
                 }
+                // Fade: how much slower second-half sets are than first-half sets, per workout.
+                val fades = timed.mapNotNull { s ->
+                    val h = s.halves(target) ?: return@mapNotNull null
+                    if (h.setSec1 == null || h.setSec2 == null) null else s.startMillis to (h.setSec2 - h.setSec1).toFloat()
+                }
+                timed.last().halves(target)?.let { h ->
+                    Text("Latest workout, first half vs second half", fontWeight = FontWeight.SemiBold)
+                    HalfTable(h, target)
+                }
+                if (fades.size >= 2) {
+                    TrendChart(points = fades, color = Amber, format = { String.format(Locale.US, "%+.0f s", it) })
+                    Legend(listOf(Amber to "Second-half sets minus first-half sets (lower = less fade)"))
+                }
                 Text(
                     "From the start beep to the last rep, finished sets only. Compared only at the same reps per set; " +
                         "the chart uses seconds per rep so different set sizes can share it. Lower is faster.",
@@ -345,7 +362,8 @@ private fun TrendChart(
     val rawLo = all.min()
     val rawHi = all.max()
     val pad = ((rawHi - rawLo) * 0.15f).coerceAtLeast(1f)
-    val lo = (rawLo - pad).coerceAtLeast(0f)
+    // Only go below zero when the data does (the fade chart can be negative).
+    val lo = if (rawLo < 0f) rawLo - pad else (rawLo - pad).coerceAtLeast(0f)
     val hi = rawHi + pad
     val t0 = points.minOf { it.first }
     val t1 = points.maxOf { it.first }

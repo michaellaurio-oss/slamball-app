@@ -90,6 +90,13 @@ fun SummaryScreen(session: Session, maxHr: Int, onRate: (Int) -> Unit, onToggleB
             }
         }
 
+        session.halves(target)?.let { h ->
+            SectionCard {
+                Label("First half vs second half")
+                HalfTable(h, target)
+            }
+        }
+
         SectionCard {
             Row {
                 Stat("slams", "${session.totalReps}", Modifier.weight(1f), color = Orange)

@@ -71,6 +71,14 @@ data class UserSettings(
     }
 }
 
+/** Averages for the first and second half of a workout's sets ([setsEach] sets in each half). */
+data class HalfStats(
+    val setsEach: Int,
+    val setSec1: Double?, val setSec2: Double?,
+    val toTarget1: Double?, val toTarget2: Double?,
+    val avgHr1: Double?, val avgHr2: Double?,
+)
+
 data class SetResult(
     val number: Int,
     val reps: Int,
@@ -158,6 +166,23 @@ data class Session(
     /** Average seconds to finish a set (finished sets only); null if none. */
     val avgSetSec: Double?
         get() = timedSets.map { it.durationSec }.takeIf { it.isNotEmpty() }?.average()
+
+    /**
+     * First half vs second half of the sets (the middle set is left out when the count is odd),
+     * to show how much slower sets and recovery get as the workout goes on. Null below 2 sets.
+     */
+    fun halves(target: Int): HalfStats? {
+        val n = sets.size / 2
+        if (n == 0) return null
+        val first = sets.take(n)
+        val second = sets.takeLast(n)
+        fun setSec(l: List<SetResult>) = l.filter { it.durationSec > 0 && it.reps > 0 && (targetReps == 0 || it.reps >= targetReps) }
+            .map { it.durationSec }.takeIf { it.isNotEmpty() }?.average()
+        fun toTarget(l: List<SetResult>) = l.filter { it.targetHr == target && target > 0 }
+            .mapNotNull { it.timeToTargetSec }.takeIf { it.isNotEmpty() }?.average()
+        fun hr(l: List<SetResult>) = l.map { it.avgHr }.filter { it > 0 }.takeIf { it.isNotEmpty() }?.average()
+        return HalfStats(n, setSec(first), setSec(second), toTarget(first), toTarget(second), hr(first), hr(second))
+    }
 
     val avgRecoveryBpm: Double?
         get() = sets.mapNotNull { it.recoveryBpm }.takeIf { it.isNotEmpty() }?.average()
