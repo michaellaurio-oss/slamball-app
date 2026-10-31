@@ -58,7 +58,7 @@ so they can't answer "is my recovery improving?" on their own. The **baseline te
   on Trends.
 - **Calories**, estimated from heart rate, age, weight and sex (Keytel formula).
 - **Voice and beeps**: set start, rest countdown and recovery results are spoken. During a set there's no
-  talking (so the mic hears every slam), just a double beep when 3 reps are left.
+  talking (so the mic hears every slam), just a rising three-note chime when 3 reps are left.
 - **History and Export**: every workout is saved on the phone; Export shares every set as a CSV
   spreadsheet (email it to yourself, open it in Excel, or give it to Claude to analyze).
 

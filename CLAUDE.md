@@ -12,8 +12,8 @@ He is the only user. Explain build and install steps plainly; he is not a day-to
   matching the current baseline definition are compared (`Progress.baselines`). Training workouts are
   compared only at the same reps per set (`Progress.byReps`).
 - Effort rating (1–10) is collected once, after the workout, on the summary screen. Not per set.
-- No speech during a set (it interferes with mic slam detection). The only in-set cue is a double
-  beep at 3 reps left, plus the optional per-rep click. `UserSettings.callEvery` is unused.
+- No speech during a set (it interferes with mic slam detection). The only in-set cue is a rising
+  three-note chime at 3 reps left (`Speaker.threeLeft`, synthesized with AudioTrack), plus the optional per-rep click. `UserSettings.callEvery` is unused.
 - Rest-until-target rest lasts `WorkoutConfig.minRestSec` (default 60) or until HR reaches the target,
   whichever is longer: the countdown holds at 5 s until the target, then goes (5 min cap). The baseline
   test uses its own `UserSettings.baselineMinRestSec` (default 60); `Session.minRestSec` records it and
