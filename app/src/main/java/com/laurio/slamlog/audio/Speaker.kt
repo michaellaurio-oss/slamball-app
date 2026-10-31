@@ -69,11 +69,11 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
 
     /**
      * 3 reps left in the set: a boxing-ring bell, three quick strikes ("ding-ding-ding") that ring out.
-     * About a second long; the mic needs a louder hit to count while it rings.
+     * About 0.8 s, kept short because the mic needs a louder hit to count while it rings.
      */
     fun threeLeft() {
         val track = bell ?: return play(ToneGenerator.TONE_PROP_BEEP2, 200)
-        markBusy(BELL_MS + 150L)
+        markBusy(BELL_MS + 100L)
         runCatching {
             track.stop()
             track.reloadStaticData()
@@ -92,7 +92,7 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         val f0 = 830.0
         val partials = doubleArrayOf(1.0, 2.0, 2.42, 2.93, 4.07, 5.41)
         val amps = doubleArrayOf(1.0, 0.55, 0.45, 0.3, 0.2, 0.12)
-        val decay = doubleArrayOf(0.30, 0.22, 0.18, 0.14, 0.10, 0.07) // seconds to fall to ~37%
+        val decay = doubleArrayOf(0.19, 0.14, 0.12, 0.09, 0.07, 0.05) // seconds to fall to ~37%
         val rnd = java.util.Random(7)
         for (k in 0 until STRIKES) {
             val start = rate * k * STRIKE_GAP_MS / 1000
@@ -158,6 +158,6 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     private companion object {
         const val STRIKES = 3
         const val STRIKE_GAP_MS = 190
-        const val BELL_MS = (STRIKES - 1) * STRIKE_GAP_MS + 650
+        const val BELL_MS = (STRIKES - 1) * STRIKE_GAP_MS + 420
     }
 }
