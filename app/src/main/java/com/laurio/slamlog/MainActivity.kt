@@ -26,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.laurio.slamlog.data.Session
+import com.laurio.slamlog.ui.AboutYouScreen
 import com.laurio.slamlog.ui.HistoryScreen
 import com.laurio.slamlog.ui.HomeScreen
 import com.laurio.slamlog.ui.SettingsScreen
@@ -51,7 +52,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Screen { HOME, WORKOUT, SUMMARY, HISTORY, TRENDS, SETTINGS }
+private enum class Screen { HOME, WORKOUT, SUMMARY, HISTORY, TRENDS, SETTINGS, ABOUT_YOU }
 
 private fun neededPermissions(): Array<String> = buildList {
     if (Build.VERSION.SDK_INT >= 31) {
@@ -143,7 +144,13 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
                 onOpen = { shown = it; screen = Screen.SUMMARY },
                 onBack = { screen = Screen.HOME },
             )
-            Screen.SETTINGS -> SettingsScreen(vm, onRequestPermissions = requestPermissions, onBack = { screen = Screen.HOME })
+            Screen.SETTINGS -> SettingsScreen(
+                vm,
+                onRequestPermissions = requestPermissions,
+                onAboutYou = { screen = Screen.ABOUT_YOU },
+                onBack = { screen = Screen.HOME },
+            )
+            Screen.ABOUT_YOU -> AboutYouScreen(vm, onBack = { screen = Screen.SETTINGS })
         }
     }
 }

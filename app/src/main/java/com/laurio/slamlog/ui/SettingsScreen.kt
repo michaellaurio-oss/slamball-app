@@ -1,6 +1,7 @@
 package com.laurio.slamlog.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,27 +27,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.laurio.slamlog.data.UserSettings
 import com.laurio.slamlog.workout.WorkoutViewModel
 import com.laurio.slamlog.workout.mmss
-import android.app.DatePickerDialog
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-private val bdayFmt = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US)
 
 @Composable
-fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onBack: () -> Unit) {
+fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onAboutYou: () -> Unit, onBack: () -> Unit) {
     val s by vm.settings.collectAsState()
     val testing by vm.testing.collectAsState()
     val testCount by vm.testCount.collectAsState()
     val mic by vm.micLevel.collectAsState()
-    val context = LocalContext.current
     var micMsg by remember { mutableStateOf<String?>(null) }
 
     BackHandler(onBack = onBack)
@@ -65,55 +57,20 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onBac
             TextButton(onClick = onBack) { Text("Back") }
         }
 
-        // ---- You ----
-        SectionCard {
-            Label("You (for zones and calories)")
+        // ---- About you (own screen) ----
+        SectionCard(Modifier.clickable(onClick = onAboutYou)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Birthday")
-                    val bday = s.birthday
+                    Text("About you", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(
-                        if (bday != null) "${bdayFmt.format(bday)} · age ${s.age}" else "Not set. Zones are using age ${s.age}.",
+                        (if (s.hasBirthday) "Age ${s.age}" else "Birthday not set") +
+                            " · ${s.weightLbs} lb · max HR ${s.maxHr}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (bday != null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+                        color = if (s.hasBirthday) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
                     )
                 }
-                FilledTonalButton(onClick = {
-                    val start = s.birthday ?: LocalDate.now().minusYears(UserSettings.DEFAULT_AGE.toLong())
-                    DatePickerDialog(
-                        context,
-                        { _, y, m, d -> vm.updateSettings(s.copy(birthDate = LocalDate.of(y, m + 1, d).toString())) },
-                        start.year, start.monthValue - 1, start.dayOfMonth,
-                    ).apply { datePicker.maxDate = System.currentTimeMillis() }.show()
-                }) { Text(if (s.hasBirthday) "Change" else "Set") }
+                Text("›", fontSize = 28.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Stepper("Body weight", "${s.weightLbs} lb",
-                onMinus = { vm.updateSettings(s.copy(weightLbs = (s.weightLbs - 1).coerceAtLeast(80))) },
-                onPlus = { vm.updateSettings(s.copy(weightLbs = (s.weightLbs + 1).coerceAtMost(400))) })
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Calorie formula", Modifier.weight(1f))
-                if (s.male) Button(onClick = {}) { Text("Male") } else OutlinedButton(onClick = { vm.updateSettings(s.copy(male = true)) }) { Text("Male") }
-                if (!s.male) Button(onClick = {}) { Text("Female") } else OutlinedButton(onClick = { vm.updateSettings(s.copy(male = false)) }) { Text("Female") }
-            }
-            Stepper(
-                "Max heart rate",
-                if (s.maxHrOverride > 0) "${s.maxHrOverride}" else "Auto ${s.estimatedMaxHr}",
-                onMinus = {
-                    vm.updateSettings(s.copy(maxHrOverride = (s.maxHr - 1).coerceAtLeast(120)))
-                },
-                onPlus = {
-                    vm.updateSettings(s.copy(maxHrOverride = (s.maxHr + 1).coerceAtMost(230)))
-                },
-            )
-            if (s.maxHrOverride > 0) {
-                TextButton(onClick = { vm.updateSettings(s.copy(maxHrOverride = 0)) }) { Text("Use the age estimate (${s.estimatedMaxHr})") }
-            }
-            Text(
-                "Auto uses 220 minus your age, so your zones shift as you get older. If you know your real max " +
-                    "(the highest number you've seen on the strap during an all-out effort), enter it instead. " +
-                    "That's more accurate than any age formula.",
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
 
         // ---- Recovery target ----

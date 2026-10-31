@@ -94,7 +94,7 @@ wiping its history.
 1. On first launch, allow **Nearby devices** (strap) and **Microphone** (slam counting).
 2. Wet the strap's electrode pads and put it on; the H808S wakes up on skin contact.
 3. Home → **Find strap** → **Connect**. Afterwards it reconnects on its own.
-4. Settings → set **birthday** and **body weight**; set **max heart rate** if you know it.
+4. Settings → **About you**: set **birthday** and **body weight**; set **max heart rate** if you know it.
 5. Settings → **Test slam detection**: do 10 slams and check the count. Too many → lower sensitivity;
    missing slams → raise it.
 6. Put the phone a few feet from where the ball lands, screen up, and press **Start**.
@@ -122,7 +122,7 @@ app/src/main/java/com/laurio/slamlog/
   workout/Physiology.kt         heart rate zones and calories
   workout/Progress.kt           baseline comparison, by-reps grouping, CSV export
   data/                         settings (SharedPreferences) and history (JSON in app storage)
-  ui/                           Home, Workout, Summary, History, Trends, Settings, effects, effort scale
+  ui/                           Home, Workout, Summary, History, Trends, Settings, About you, effects, effort scale
 install.bat                     build + install on a USB-connected phone
 ```
 
