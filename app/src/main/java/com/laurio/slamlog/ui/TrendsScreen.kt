@@ -90,9 +90,13 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
                 color = when (verdict.improving) { true -> Mint; false -> Amber; null -> MaterialTheme.colorScheme.onSurface },
             )
             Text(verdict.detail, style = MaterialTheme.typography.bodyMedium)
-            Progress.excludedBaselines(sessions, settings).forEach { (t, why) ->
+            // Only the newest left-out test, so ended-early ones don't pile up over the months.
+            val excluded = Progress.excludedBaselines(sessions, settings)
+            excluded.firstOrNull()?.let { (t, why) ->
+                val more = excluded.size - 1
                 Text(
-                    "Not compared: ${shortDate.format(Date(t.startMillis))} test, $why.",
+                    "Not compared: ${shortDate.format(Date(t.startMillis))} test, $why." +
+                        if (more > 0) " ($more older test${if (more == 1) "" else "s"} also left out.)" else "",
                     style = MaterialTheme.typography.bodySmall, color = Amber,
                 )
             }

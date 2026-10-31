@@ -75,7 +75,7 @@ fun BaselineScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Progress.excludedBaselines(sessions, settings).forEach { (t, why) ->
+            Progress.excludedBaselines(sessions, settings).take(1).forEach { (t, why) ->
                 Text(
                     "A test from ${java.text.SimpleDateFormat("MMM d", java.util.Locale.US).format(java.util.Date(t.startMillis))} isn't compared: $why.",
                     style = MaterialTheme.typography.bodySmall, color = Amber,
