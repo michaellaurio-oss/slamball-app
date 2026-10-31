@@ -102,7 +102,10 @@ fun BaselineSettingsScreen(vm: WorkoutViewModel, onBack: () -> Unit) {
             Stepper("Ball weight", "${s.baselineBallLbs} lb",
                 onMinus = { change(s.copy(baselineBallLbs = (s.baselineBallLbs - 5).coerceAtLeast(5))) },
                 onPlus = { change(s.copy(baselineBallLbs = (s.baselineBallLbs + 5).coerceAtMost(150))) })
-            SwitchRow("Rest until HR ≤ ${s.recoveryTargetHr}", "Each set starts from the same heart rate, so every set gets timed", s.baselineRestUntilTarget) {
+            Stepper("Recovery target", "${s.baselineTargetHr} bpm",
+                onMinus = { change(s.copy(baselineTargetHr = (s.baselineTargetHr - 5).coerceAtLeast(80))) },
+                onPlus = { change(s.copy(baselineTargetHr = (s.baselineTargetHr + 5).coerceAtMost(200))) })
+            SwitchRow("Rest until HR ≤ ${s.baselineTargetHr}", "Each set starts from the same heart rate, so every set gets timed", s.baselineRestUntilTarget) {
                 change(s.copy(baselineRestUntilTarget = it))
             }
             if (s.baselineRestUntilTarget) {

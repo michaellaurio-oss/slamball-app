@@ -21,6 +21,7 @@ class SettingsStore(context: Context) {
         baselineBallLbs = p.getInt("baselineBallLbs", p.getInt("ballWeightLbs", 20)),
         baselineRestUntilTarget = p.getBoolean("baselineRestUntilTarget", true),
         baselineMinRestSec = p.getInt("baselineMinRestSec", 60),
+        baselineTargetHr = p.getInt("baselineTargetHr", p.getInt("recoveryTargetHr", 130)),
     )
 
     fun saveSettings(s: UserSettings) {
@@ -40,6 +41,7 @@ class SettingsStore(context: Context) {
             .putInt("baselineBallLbs", s.baselineBallLbs)
             .putBoolean("baselineRestUntilTarget", s.baselineRestUntilTarget)
             .putInt("baselineMinRestSec", s.baselineMinRestSec)
+            .putInt("baselineTargetHr", s.baselineTargetHr)
             .apply()
     }
 

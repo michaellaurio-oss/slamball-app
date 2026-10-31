@@ -54,37 +54,6 @@ fun HomeScreen(
     val sessions by vm.sessions.collectAsState()
     val perms by vm.permissions.collectAsState()
     val bluetoothOn by vm.hr.bluetoothOn.collectAsState()
-    // The recovery target also times the baseline test, so changing it warns first (once per visit).
-    val baselineCount = Progress.baselines(sessions, settings).size
-    var targetConfirmed by remember { mutableStateOf(false) }
-    var pendingTarget by remember { mutableStateOf<Int?>(null) }
-    fun changeTarget(hr: Int) {
-        if (baselineCount > 0 && !targetConfirmed) pendingTarget = hr
-        else vm.updateSettings(settings.copy(recoveryTargetHr = hr))
-    }
-    pendingTarget?.let { hr ->
-        AlertDialog(
-            onDismissRequest = { pendingTarget = null },
-            title = { Text("Change the recovery target?") },
-            text = {
-                Text(
-                    "The baseline test is timed to this number too. Your $baselineCount baseline " +
-                        "test${if (baselineCount == 1) " was" else "s were"} timed to ${settings.recoveryTargetHr}, so changing it " +
-                        "starts a fresh comparison, and Trends will only chart workouts timed to the new target. " +
-                        "Changing it back brings the earlier ones back."
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    targetConfirmed = true
-                    vm.updateSettings(settings.copy(recoveryTargetHr = hr))
-                    pendingTarget = null
-                }) { Text("Change it") }
-            },
-            dismissButton = { TextButton(onClick = { pendingTarget = null }) { Text("Keep ${settings.recoveryTargetHr}") } },
-        )
-    }
-
     Column(
         Modifier
             .fillMaxSize()
@@ -173,11 +142,11 @@ fun HomeScreen(
                 onMinus = { vm.updateConfig(cfg.copy(targetReps = (cfg.targetReps - 1).coerceAtLeast(1))) },
                 onPlus = { vm.updateConfig(cfg.copy(targetReps = (cfg.targetReps + 1).coerceAtMost(200))) })
             Stepper("Recovery target", "${settings.recoveryTargetHr} bpm",
-                onMinus = { changeTarget((settings.recoveryTargetHr - 5).coerceAtLeast(80)) },
-                onPlus = { changeTarget((settings.recoveryTargetHr + 5).coerceAtMost(200)) })
+                onMinus = { vm.updateSettings(settings.copy(recoveryTargetHr = (settings.recoveryTargetHr - 5).coerceAtLeast(80))) },
+                onPlus = { vm.updateSettings(settings.copy(recoveryTargetHr = (settings.recoveryTargetHr + 5).coerceAtMost(200))) })
             Text(
                 "After every set, Slam Log times how long your heart rate takes to fall to this number. " +
-                    "Pick one and stick with it: workouts are only compared at the same target.",
+                    "Training workouts are only compared at the same target. The baseline test has its own.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

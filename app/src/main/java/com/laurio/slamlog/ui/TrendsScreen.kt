@@ -80,7 +80,7 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
 
         // ---- Is my recovery improving? (baseline tests only) ----
         val baselines = Progress.baselines(sessions, settings)
-        val verdict = Progress.verdict(baselines, target)
+        val verdict = Progress.verdict(baselines, settings.baselineTargetHr)
         SectionCard {
             Label("Is my recovery improving?")
             Text(
@@ -92,7 +92,7 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
             Text(verdict.detail, style = MaterialTheme.typography.bodyMedium)
             if (baselines.size >= 2) {
                 TrendChart(
-                    points = baselines.map { it.startMillis to it.avgTimeToTarget(target)!!.toFloat() },
+                    points = baselines.map { it.startMillis to it.avgTimeToTarget(settings.baselineTargetHr)!!.toFloat() },
                     color = Sky,
                     format = { mmss(it.roundToInt()) },
                 )
@@ -108,7 +108,7 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
                     Text(shortDate.format(Date(s.startMillis)), Modifier.weight(1f))
                     s.rpe?.let { Text("felt $it/10  ", color = effortColor(it), style = MaterialTheme.typography.bodySmall) }
                     TextButton(onClick = { onOpen(s) }) {
-                        Text(mmss(s.avgTimeToTarget(target)!!.roundToInt()), fontWeight = FontWeight.Bold, color = Sky)
+                        Text(mmss(s.avgTimeToTarget(settings.baselineTargetHr)!!.roundToInt()), fontWeight = FontWeight.Bold, color = Sky)
                     }
                 }
             }

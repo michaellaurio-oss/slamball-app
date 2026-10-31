@@ -59,7 +59,7 @@ fun BaselineScreen(
             TextButton(onClick = onBack) { Text("Back") }
         }
 
-        val target = settings.recoveryTargetHr
+        val target = settings.baselineTargetHr
         val baselines = Progress.baselines(sessions, settings)
         val verdict = Progress.verdict(baselines, target)
         SectionCard {

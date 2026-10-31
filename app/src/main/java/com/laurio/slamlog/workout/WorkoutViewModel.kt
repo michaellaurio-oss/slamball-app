@@ -190,6 +190,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
                 autoCount = _config.value.autoCount,
                 restUntilTarget = s.baselineRestUntilTarget,
                 minRestSec = s.baselineMinRestSec,
+                targetHr = s.baselineTargetHr,
             ),
             baseline = true,
         )
@@ -377,7 +378,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         if (u.phase != Phase.WORK) return
         detector.armed = false
         val now = SystemClock.elapsedRealtime()
-        val target = _settings.value.recoveryTargetHr
+        val target = targetHr()
         val bpmNow = hr.currentBpm()
         restStartHr = max(bpmNow ?: 0, setHr.takeLast(3).maxOrNull() ?: 0)
         restElapsed = 0
@@ -408,6 +409,9 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             speaker.say("Set ${u.setNumber} done. ${u.reps} reps. Rest.")
         }
     }
+
+    /** This workout's recovery target: the baseline's own, or the training target. */
+    private fun targetHr(): Int = if (cfg.targetHr > 0) cfg.targetHr else _settings.value.recoveryTargetHr
 
     fun skipRest() {
         when (_ui.value.phase) {
@@ -523,7 +527,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         lastSession = session
         _ui.value = u.copy(phase = Phase.DONE)
 
-        val target = _settings.value.recoveryTargetHr
+        val target = targetHr()
         val avgToTarget = session.avgTimeToTarget(target)
         val cal = if (valid.isEmpty()) "" else " ${calories.roundToInt()} calories."
         val rec = if (avgToTarget != null) " Average time to $target, ${spokenTime(avgToTarget.roundToInt())}." else ""

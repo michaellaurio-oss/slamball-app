@@ -19,6 +19,8 @@ data class WorkoutConfig(
      * target, whichever is longer (also the rest used when there's no heart rate).
      */
     val minRestSec: Int = 60,
+    /** Recovery target for this workout; 0 = use the training target in settings. Not saved. */
+    val targetHr: Int = 0,
 )
 
 /** Personal details (for zones and calories) and app preferences. */
@@ -47,6 +49,8 @@ data class UserSettings(
     val baselineRestUntilTarget: Boolean = true,
     /** Baseline's own minimum rest (rest-until-target mode), separate from the Home screen's. */
     val baselineMinRestSec: Int = 60,
+    /** Baseline's own recovery target, separate from training's [recoveryTargetHr]. */
+    val baselineTargetHr: Int = 130,
 ) {
     val birthday: LocalDate?
         get() = birthDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
