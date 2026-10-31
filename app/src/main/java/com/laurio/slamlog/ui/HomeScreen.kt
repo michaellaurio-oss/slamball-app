@@ -1,6 +1,5 @@
 package com.laurio.slamlog.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,17 +26,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.laurio.slamlog.ble.HeartRateManager.State
 import com.laurio.slamlog.workout.Physiology
-import com.laurio.slamlog.workout.Progress
 import com.laurio.slamlog.workout.WorkoutViewModel
 import com.laurio.slamlog.workout.mmss
-import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(
     vm: WorkoutViewModel,
     onRequestPermissions: () -> Unit,
     onStart: () -> Unit,
-    onStartBaseline: () -> Unit,
+    onBaseline: () -> Unit,
     onHistory: () -> Unit,
     onTrends: () -> Unit,
     onSettings: () -> Unit,
@@ -131,42 +128,6 @@ fun HomeScreen(
             }
         }
 
-        // ---- Baseline test: the fair yardstick for recovery ----
-        val target = settings.recoveryTargetHr
-        val baselines = Progress.baselines(sessions, settings)
-        val verdict = Progress.verdict(baselines, target)
-        SectionCard {
-            Label("Baseline test")
-            Text(
-                "${settings.baselineSets} × ${settings.baselineReps} · ${settings.baselineBallLbs} lb" +
-                    if (settings.baselineRestUntilTarget) " · rest ${mmss(settings.baselineMinRestSec)}+ until HR ≤ $target" else "",
-                fontWeight = FontWeight.Bold, fontSize = 18.sp,
-            )
-            Text(
-                "The same workout every time, so your time from last slam to $target can be compared fairly " +
-                    "while your training workouts get bigger. Repeat it every couple of weeks.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (baselines.isNotEmpty()) {
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Stat("latest", mmss(baselines.last().avgTimeToTarget(target)!!.roundToInt()), Modifier.weight(1f), color = Sky)
-                    Stat("first", mmss(baselines.first().avgTimeToTarget(target)!!.roundToInt()), Modifier.weight(1f))
-                    Stat("tests", "${baselines.size}", Modifier.weight(1f))
-                }
-                Text(
-                    verdict.headline,
-                    fontWeight = FontWeight.SemiBold,
-                    color = when (verdict.improving) { true -> Mint; false -> Amber; null -> MaterialTheme.colorScheme.onSurface },
-                    modifier = Modifier.clickable(onClick = onTrends),
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onStartBaseline, modifier = Modifier.weight(1f)) { Text("Start baseline test") }
-                OutlinedButton(onClick = onTrends) { Text("Trends") }
-            }
-        }
-
         // ---- Training workout setup ----
         SectionCard {
             Label("Training workout")
@@ -237,6 +198,14 @@ fun HomeScreen(
                 Text(if (sessions.isEmpty()) "History" else "History (${sessions.size})")
             }
             OutlinedButton(onClick = onSettings, modifier = Modifier.weight(1f)) { Text("Settings") }
+        }
+        OutlinedButton(
+            onClick = onBaseline,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+        ) {
+            Text("BASELINE", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
     }

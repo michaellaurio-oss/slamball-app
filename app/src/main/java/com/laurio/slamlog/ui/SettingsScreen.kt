@@ -86,33 +86,6 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onAbo
             )
         }
 
-        // ---- Baseline test ----
-        SectionCard {
-            Label("Baseline test")
-            Stepper("Sets", "${s.baselineSets}",
-                onMinus = { vm.updateSettings(s.copy(baselineSets = (s.baselineSets - 1).coerceAtLeast(1))) },
-                onPlus = { vm.updateSettings(s.copy(baselineSets = (s.baselineSets + 1).coerceAtMost(30))) })
-            Stepper("Reps per set", "${s.baselineReps}",
-                onMinus = { vm.updateSettings(s.copy(baselineReps = (s.baselineReps - 1).coerceAtLeast(1))) },
-                onPlus = { vm.updateSettings(s.copy(baselineReps = (s.baselineReps + 1).coerceAtMost(200))) })
-            Stepper("Ball weight", "${s.baselineBallLbs} lb",
-                onMinus = { vm.updateSettings(s.copy(baselineBallLbs = (s.baselineBallLbs - 5).coerceAtLeast(5))) },
-                onPlus = { vm.updateSettings(s.copy(baselineBallLbs = (s.baselineBallLbs + 5).coerceAtMost(150))) })
-            SwitchRow("Rest until HR ≤ ${s.recoveryTargetHr}", "Each set starts from the same heart rate, so every set gets timed", s.baselineRestUntilTarget) {
-                vm.updateSettings(s.copy(baselineRestUntilTarget = it))
-            }
-            if (s.baselineRestUntilTarget) {
-                Stepper("Minimum rest", mmss(s.baselineMinRestSec),
-                    onMinus = { vm.updateSettings(s.copy(baselineMinRestSec = (s.baselineMinRestSec - 15).coerceAtLeast(15))) },
-                    onPlus = { vm.updateSettings(s.copy(baselineMinRestSec = (s.baselineMinRestSec + 15).coerceAtMost(600))) })
-            }
-            Text(
-                "Set this once and leave it alone. Only baseline tests that match these numbers are compared, " +
-                    "so changing them starts a fresh comparison.",
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
         // ---- Slam detection ----
         SectionCard {
             Label("Slam detection")
@@ -182,7 +155,7 @@ fun SettingsScreen(vm: WorkoutViewModel, onRequestPermissions: () -> Unit, onAbo
 }
 
 @Composable
-private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+fun SwitchRow(title: String, subtitle: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(title)

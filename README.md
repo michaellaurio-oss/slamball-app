@@ -28,8 +28,9 @@ so they can't answer "is my recovery improving?" on their own. The **baseline te
 
 - It's the same workout every time: **10 sets × 20 reps**, same ball, resting at least 60 s and until
   HR ≤ 130. The baseline has its own minimum rest, so changing the Home screen's doesn't affect it.
-  Start it from the Baseline test card on the Home screen. Its definition lives in
-  Settings → Baseline test; only tests that match the current definition are compared.
+  Home → **BASELINE** opens its own screen with your progress and the Start button. Its definition
+  lives under **BASELINE SETTINGS** at the bottom of that screen; only tests that match the current
+  definition are compared.
 - Repeat it every couple of weeks. Trends → **Is my recovery improving?** compares the latest baseline
   with the first one (average time from last slam to 130, plus the first-minute heart rate drop) and
   answers in a sentence. Changes under 3 seconds or 5% count as "about the same".
@@ -122,7 +123,7 @@ app/src/main/java/com/laurio/slamlog/
   workout/Physiology.kt         heart rate zones and calories
   workout/Progress.kt           baseline comparison, by-reps grouping, CSV export
   data/                         settings (SharedPreferences) and history (JSON in app storage)
-  ui/                           Home, Workout, Summary, History, Trends, Settings, About you, effects, effort scale
+  ui/                           Home, Workout, Summary, History, Trends, Baseline, Baseline settings, Settings, About you, effects, effort scale
 install.bat                     build + install on a USB-connected phone
 ```
 

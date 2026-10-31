@@ -38,7 +38,8 @@ Single-activity Jetpack Compose app, no DI, no database library.
 - `audio/Speaker.kt`: TextToSpeech + ToneGenerator.
 - `data/`: `Models.kt` (JSON (de)serialization, so new fields must default safely for old saved
   workouts), `SessionStore.kt` (sessions.json in app storage), `SettingsStore.kt` (SharedPreferences).
-- `ui/`: one file per screen (personal details live on `AboutYouScreen`, opened from Settings), plus `Components.kt`, `SlamEffects.kt` (burst/pop/shake), `Effort.kt`.
+- `ui/`: one file per screen (personal details live on `AboutYouScreen`, opened from Settings; the baseline test has
+  `BaselineScreen` (Home → BASELINE) and `BaselineSettingsScreen` (from its bottom button)), plus `Components.kt`, `SlamEffects.kt` (burst/pop/shake), `Effort.kt`.
 
 When adding a field to `Session`, `SetResult` or `UserSettings`: give it a default, write it in
 `toJson`/`SettingsStore`, and read it with a fallback, so existing data on the phone keeps loading.

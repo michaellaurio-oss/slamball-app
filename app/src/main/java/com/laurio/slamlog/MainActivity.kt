@@ -27,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.laurio.slamlog.data.Session
 import com.laurio.slamlog.ui.AboutYouScreen
+import com.laurio.slamlog.ui.BaselineScreen
+import com.laurio.slamlog.ui.BaselineSettingsScreen
 import com.laurio.slamlog.ui.HistoryScreen
 import com.laurio.slamlog.ui.HomeScreen
 import com.laurio.slamlog.ui.SettingsScreen
@@ -52,7 +54,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Screen { HOME, WORKOUT, SUMMARY, HISTORY, TRENDS, SETTINGS, ABOUT_YOU }
+private enum class Screen { HOME, WORKOUT, SUMMARY, HISTORY, TRENDS, SETTINGS, ABOUT_YOU, BASELINE, BASELINE_SETTINGS }
 
 private fun neededPermissions(): Array<String> = buildList {
     if (Build.VERSION.SDK_INT >= 31) {
@@ -67,6 +69,8 @@ private fun neededPermissions(): Array<String> = buildList {
 @Composable
 private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
     var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
+    // Where Trends' Back goes (Home, or Baseline when opened from there).
+    var trendsBack by rememberSaveable { mutableStateOf(Screen.HOME) }
     var shown by remember { mutableStateOf<Session?>(null) }
     val ui by vm.ui.collectAsState()
     val settings by vm.settings.collectAsState()
@@ -109,9 +113,9 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
                 vm = vm,
                 onRequestPermissions = requestPermissions,
                 onStart = { vm.startWorkout(); screen = Screen.WORKOUT },
-                onStartBaseline = { vm.startBaseline(); screen = Screen.WORKOUT },
+                onBaseline = { screen = Screen.BASELINE },
                 onHistory = { screen = Screen.HISTORY },
-                onTrends = { screen = Screen.TRENDS },
+                onTrends = { trendsBack = Screen.HOME; screen = Screen.TRENDS },
                 onSettings = { screen = Screen.SETTINGS },
             )
             Screen.WORKOUT -> WorkoutScreen(vm)
@@ -133,7 +137,7 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
             Screen.HISTORY -> HistoryScreen(
                 sessions = sessions,
                 onOpen = { shown = it; screen = Screen.SUMMARY },
-                onTrends = { screen = Screen.TRENDS },
+                onTrends = { trendsBack = Screen.HOME; screen = Screen.TRENDS },
                 onExport = { vm.exportCsvFile() },
                 onBack = { screen = Screen.HOME },
             )
@@ -142,7 +146,7 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
                 settings = settings,
                 target = settings.recoveryTargetHr,
                 onOpen = { shown = it; screen = Screen.SUMMARY },
-                onBack = { screen = Screen.HOME },
+                onBack = { screen = trendsBack },
             )
             Screen.SETTINGS -> SettingsScreen(
                 vm,
@@ -151,6 +155,14 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
                 onBack = { screen = Screen.HOME },
             )
             Screen.ABOUT_YOU -> AboutYouScreen(vm, onBack = { screen = Screen.SETTINGS })
+            Screen.BASELINE -> BaselineScreen(
+                vm,
+                onStartBaseline = { vm.startBaseline(); screen = Screen.WORKOUT },
+                onTrends = { trendsBack = Screen.BASELINE; screen = Screen.TRENDS },
+                onBaselineSettings = { screen = Screen.BASELINE_SETTINGS },
+                onBack = { screen = Screen.HOME },
+            )
+            Screen.BASELINE_SETTINGS -> BaselineSettingsScreen(vm, onBack = { screen = Screen.BASELINE })
         }
     }
 }
