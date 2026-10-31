@@ -14,6 +14,9 @@ He is the only user. Explain build and install steps plainly; he is not a day-to
 - Effort rating (1–10) is collected once, after the workout, on the summary screen. Not per set.
 - No speech during a set (it interferes with mic slam detection). The only in-set cue is a double
   beep at 3 reps left, plus the optional per-rep click. `UserSettings.callEvery` is unused.
+- Rest-until-target rest ends at the target (+5 s go countdown) or at `WorkoutConfig.maxRestSec`
+  (default 90), whichever is first; capped sets get no time-to-target. The baseline test passes
+  `maxRestSec = 0` (no cap, waits up to 5 min) so every baseline set is timed.
 - Age comes from the stored birthday (`UserSettings.birthDate`), never a stored age.
 
 ## Architecture

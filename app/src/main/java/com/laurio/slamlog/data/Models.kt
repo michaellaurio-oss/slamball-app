@@ -14,6 +14,11 @@ data class WorkoutConfig(
     val autoCount: Boolean = true,
     /** Rest until heart rate falls to the recovery target (then 5 s to go), instead of a fixed time. */
     val restUntilTarget: Boolean = false,
+    /**
+     * Rest-until-target mode: the longest a rest can last, whether or not HR got there (also the rest
+     * used when there's no heart rate). 0 = no limit, wait for the target (the baseline test uses this).
+     */
+    val maxRestSec: Int = 90,
 )
 
 /** Personal details (for zones and calories) and app preferences. */

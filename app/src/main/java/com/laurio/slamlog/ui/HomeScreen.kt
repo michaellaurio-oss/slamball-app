@@ -180,16 +180,23 @@ fun HomeScreen(
                 Column(Modifier.weight(1f)) {
                     Text("Rest until HR ≤ ${settings.recoveryTargetHr}")
                     Text(
-                        "Next set starts 5 s after you hit ${settings.recoveryTargetHr}, so every set gets timed.",
+                        "Next set starts 5 s after you hit ${settings.recoveryTargetHr}, or when the max rest runs out, " +
+                            "whichever comes first. Change ${settings.recoveryTargetHr} in Settings.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Switch(checked = cfg.restUntilTarget, onCheckedChange = { vm.updateConfig(cfg.copy(restUntilTarget = it)) })
             }
-            Stepper(if (cfg.restUntilTarget) "Rest if no HR" else "Rest", mmss(cfg.restSec),
-                onMinus = { vm.updateConfig(cfg.copy(restSec = (cfg.restSec - 15).coerceAtLeast(15))) },
-                onPlus = { vm.updateConfig(cfg.copy(restSec = (cfg.restSec + 15).coerceAtMost(600))) })
+            if (cfg.restUntilTarget) {
+                Stepper("Max rest", mmss(cfg.maxRestSec),
+                    onMinus = { vm.updateConfig(cfg.copy(maxRestSec = (cfg.maxRestSec - 15).coerceAtLeast(30))) },
+                    onPlus = { vm.updateConfig(cfg.copy(maxRestSec = (cfg.maxRestSec + 15).coerceAtMost(600))) })
+            } else {
+                Stepper("Rest", mmss(cfg.restSec),
+                    onMinus = { vm.updateConfig(cfg.copy(restSec = (cfg.restSec - 15).coerceAtLeast(15))) },
+                    onPlus = { vm.updateConfig(cfg.copy(restSec = (cfg.restSec + 15).coerceAtMost(600))) })
+            }
             Stepper("Ball weight", "${cfg.ballWeightLbs} lb",
                 onMinus = { vm.updateConfig(cfg.copy(ballWeightLbs = (cfg.ballWeightLbs - 5).coerceAtLeast(5))) },
                 onPlus = { vm.updateConfig(cfg.copy(ballWeightLbs = (cfg.ballWeightLbs + 5).coerceAtMost(150))) })

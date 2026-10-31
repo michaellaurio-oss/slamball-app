@@ -17,7 +17,10 @@ The final set is measured too: the recovery check after it runs at least a minut
 reach the target (up to 5 minutes).
 
 **Rest until HR ≤ 130** (Home screen switch): instead of a fixed rest, the next set starts 5 seconds
-after you hit the target, so every set is timed from the same starting point.
+after you hit the target, or when the **max rest** runs out (90 s by default; set it on the Home
+screen), whichever comes first. A set that hits the max rest before 130 gets no time-to-130, and is
+left out of the averages. The baseline test has no max rest: it always waits for 130, so every
+baseline set gets a time.
 
 ## Baseline test: is my recovery improving?
 
