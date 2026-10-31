@@ -113,6 +113,8 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     private var setStartedAt = 0L
     private var lastSlamAt = 0L
     private var waitingForTarget = false
+    /** Seconds in a row with no heart rate reading during rest (strap dropped out). */
+    private var noHrSec = 0
 
     // ---------- Settings ----------
 
@@ -209,6 +211,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         calories = 0.0
         restStartHr = 0
         restElapsed = 0
+        noHrSec = 0
         recovery60 = null
         startMillis = System.currentTimeMillis()
         lastSession = null
@@ -270,6 +273,13 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
             Phase.REST, Phase.RECOVERY -> {
                 restElapsed++
+                // Strap dropped out? Stop waiting for the target after NO_HR_GIVE_UP_SEC with no reading,
+                // so the rest (or final check) doesn't hold for minutes on a number that can't arrive.
+                noHrSec = if (bpm == null) noHrSec + 1 else 0
+                if (waitingForTarget && noHrSec >= NO_HR_GIVE_UP_SEC) {
+                    waitingForTarget = false
+                    speaker.say("Lost heart rate.")
+                }
                 // Rest-until-target: once the minimum rest is down to the 5-second go countdown, hold
                 // there until HR reaches the target (rest = minimum or target, whichever is longer).
                 val holding = u.phase == Phase.REST && cfg.restUntilTarget && waitingForTarget &&
@@ -382,6 +392,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         val bpmNow = hr.currentBpm()
         restStartHr = max(bpmNow ?: 0, setHr.takeLast(3).maxOrNull() ?: 0)
         restElapsed = 0
+        noHrSec = 0
         recovery60 = null
         // Clock starts at the last slam (or now, if no reps were counted).
         lastSlamAt = lastSlamTime(now)
@@ -576,6 +587,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         private const val GET_READY_SEC = 10
         private const val MAX_RECOVERY_SEC = 300
         private const val GO_AFTER_TARGET_SEC = 5
+        private const val NO_HR_GIVE_UP_SEC = 15
         /** A missed final slam comes within a few seconds of the one before it. */
         private const val MISSED_SLAM_WINDOW_MS = 4_000L
     }

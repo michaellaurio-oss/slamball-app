@@ -113,6 +113,8 @@ wiping its history.
   caps auto-counting at about 85 slams a minute.
 - While the phone is beeping or talking, it needs a much louder hit to count, so it doesn't count its
   own voice.
+- If the strap stops sending heart rate during a rest for 15 s, the app stops waiting for the target
+  ("Lost heart rate") and moves on, instead of holding the rest.
 - Loud music or other people slamming nearby can add extra reps: use −1, or lower sensitivity.
 - The screen stays on during a workout. Keep the app open; if Android kills it in the background, the
   workout in progress is lost.
