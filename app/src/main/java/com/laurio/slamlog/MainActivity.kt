@@ -71,6 +71,8 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
     var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
     // Where Trends' Back goes (Home, or Baseline when opened from there).
     var trendsBack by rememberSaveable { mutableStateOf(Screen.HOME) }
+    // Where About you's Back goes (Settings, or Home when opened from the birthday reminder).
+    var aboutBack by rememberSaveable { mutableStateOf(Screen.SETTINGS) }
     var shown by remember { mutableStateOf<Session?>(null) }
     val ui by vm.ui.collectAsState()
     val settings by vm.settings.collectAsState()
@@ -117,6 +119,7 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
                 onHistory = { screen = Screen.HISTORY },
                 onTrends = { trendsBack = Screen.HOME; screen = Screen.TRENDS },
                 onSettings = { screen = Screen.SETTINGS },
+                onAboutYou = { aboutBack = Screen.HOME; screen = Screen.ABOUT_YOU },
             )
             Screen.WORKOUT -> WorkoutScreen(vm)
             Screen.SUMMARY -> {
@@ -151,10 +154,10 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
             Screen.SETTINGS -> SettingsScreen(
                 vm,
                 onRequestPermissions = requestPermissions,
-                onAboutYou = { screen = Screen.ABOUT_YOU },
+                onAboutYou = { aboutBack = Screen.SETTINGS; screen = Screen.ABOUT_YOU },
                 onBack = { screen = Screen.HOME },
             )
-            Screen.ABOUT_YOU -> AboutYouScreen(vm, onBack = { screen = Screen.SETTINGS })
+            Screen.ABOUT_YOU -> AboutYouScreen(vm, onBack = { screen = aboutBack })
             Screen.BASELINE -> BaselineScreen(
                 vm,
                 onStartBaseline = { vm.startBaseline(); screen = Screen.WORKOUT },
