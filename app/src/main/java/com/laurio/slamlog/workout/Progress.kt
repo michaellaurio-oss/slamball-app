@@ -95,6 +95,17 @@ object Progress {
         return Verdict(headline, detail, improving)
     }
 
+    /** Average set time grouped by reps per set (a 20-rep set only compared with 20-rep sets). */
+    fun setTimeByReps(sessions: List<Session>): List<RepLevel> = sessions
+        .filter { it.avgSetSec != null }
+        .groupBy { it.targetReps }
+        .map { (reps, list) ->
+            val sorted = list.sortedBy { it.startMillis }
+            val times = sorted.map { it.avgSetSec!! }
+            RepLevel(reps, sorted.size, times.first(), times.last(), times.min())
+        }
+        .sortedBy { it.reps }
+
     /** Time to target grouped by reps per set, so 20-rep workouts are only compared with 20-rep workouts. */
     fun byReps(sessions: List<Session>, target: Int): List<RepLevel> = sessions
         .filter { it.avgTimeToTarget(target) != null }

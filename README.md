@@ -49,6 +49,8 @@ so they can't answer "is my recovery improving?" on their own. The **baseline te
   Age comes from your **birthday**, so max HR (220 − age) and the zones update each year;
   a known real max HR can be entered instead.
 - **1-minute recovery**: how far heart rate dropped in the first minute after each set.
+- **Time per set** (Trends): how long each finished set takes, start beep to last rep, compared only at
+  the same reps per set, with seconds per rep charted over time. Baseline tests show it too.
 - **Effort rating**: after each workout, rate it 1–10 (easy → all-out). Shown in History and charted
   on Trends.
 - **Calories**, estimated from heart rate, age, weight and sex (Keytel formula).

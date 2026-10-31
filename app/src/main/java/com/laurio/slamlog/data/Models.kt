@@ -151,6 +151,14 @@ data class Session(
     /** Short description like "10 × 20 · 20 lb". */
     val shape: String get() = "${if (plannedSets > 0) plannedSets else sets.size} × $targetReps · $ballWeightLbs lb"
 
+    /** Finished sets (all reps done) with a duration: the ones that show how long a set takes. */
+    val timedSets: List<SetResult>
+        get() = sets.filter { it.durationSec > 0 && it.reps > 0 && (targetReps == 0 || it.reps >= targetReps) }
+
+    /** Average seconds to finish a set (finished sets only); null if none. */
+    val avgSetSec: Double?
+        get() = timedSets.map { it.durationSec }.takeIf { it.isNotEmpty() }?.average()
+
     val avgRecoveryBpm: Double?
         get() = sets.mapNotNull { it.recoveryBpm }.takeIf { it.isNotEmpty() }?.average()
 

@@ -90,6 +90,13 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
                 color = when (verdict.improving) { true -> Mint; false -> Amber; null -> MaterialTheme.colorScheme.onSurface },
             )
             Text(verdict.detail, style = MaterialTheme.typography.bodyMedium)
+            val baselineSetTimes = baselines.mapNotNull { it.avgSetSec }
+            if (baselineSetTimes.size >= 2) {
+                Text(
+                    "Time per set: ${secs(baselineSetTimes.first())} in your first test, ${secs(baselineSetTimes.last())} in your latest.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
             if (baselines.size >= 2) {
                 TrendChart(
                     points = baselines.map { it.startMillis to it.avgTimeToTarget(settings.baselineTargetHr)!!.toFloat() },
@@ -185,6 +192,52 @@ fun TrendsScreen(sessions: List<Session>, settings: UserSettings, target: Int, o
                 Legend(listOf(Sky to "Average per workout", Mint to "Fastest set"))
                 Text("Lower is better. Compare like with like: reps per set, ball weight and rest length all change the time.",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        // ---- Time per set ----
+        val timed = shown.filter { it.avgSetSec != null }
+        if (timed.isNotEmpty()) {
+            SectionCard {
+                Label("Time per set")
+                val latest = timed.last()
+                val fastest = timed.flatMap { it.timedSets }.minBy { it.durationSec }
+                Row {
+                    Stat("latest avg", secs(latest.avgSetSec!!), Modifier.weight(1f), color = Sky)
+                    Stat("fastest set", secs(fastest.durationSec.toDouble()), Modifier.weight(1f), color = Mint)
+                    Stat("per rep", String.format(Locale.US, "%.1f s", latest.avgSetSec!! / latest.targetReps.coerceAtLeast(1)), Modifier.weight(1f))
+                }
+                val setLevels = Progress.setTimeByReps(shown)
+                Row {
+                    Text("Reps", Modifier.weight(0.8f), style = MaterialTheme.typography.labelMedium)
+                    Text("Workouts", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+                    Text("First", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+                    Text("Latest", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+                    Text("Best", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
+                }
+                setLevels.forEach { l ->
+                    val faster = l.workouts > 1 && l.latest < l.first - 1
+                    Row {
+                        Text("${l.reps}", Modifier.weight(0.8f), fontWeight = FontWeight.Bold)
+                        Text("${l.workouts}", Modifier.weight(1f))
+                        Text(secs(l.first), Modifier.weight(1f))
+                        Text(secs(l.latest), Modifier.weight(1f), color = if (faster) Mint else MaterialTheme.colorScheme.onSurface)
+                        Text(secs(l.best), Modifier.weight(1f))
+                    }
+                }
+                if (timed.size >= 2) {
+                    TrendChart(
+                        points = timed.map { it.startMillis to (it.avgSetSec!! / it.targetReps.coerceAtLeast(1)).toFloat() },
+                        color = Orange,
+                        format = { String.format(Locale.US, "%.1f s", it) },
+                    )
+                    Legend(listOf(Orange to "Seconds per rep (average set ÷ reps)"))
+                }
+                Text(
+                    "From the start beep to the last rep, finished sets only. Compared only at the same reps per set; " +
+                        "the chart uses seconds per rep so different set sizes can share it. Lower is faster.",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 
@@ -330,3 +383,6 @@ private fun TrendChart(
         }
     }
 }
+
+/** Seconds as "45 s" under a minute, else m:ss. */
+private fun secs(v: Double): String { val r = v.roundToInt(); return if (r < 60) "$r s" else mmss(r) }
