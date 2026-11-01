@@ -135,7 +135,7 @@ private fun AppRoot(vm: WorkoutViewModel, modifier: Modifier) {
                         onRate = { v -> shown = vm.rateSession(s, v) },
                         onToggleBaseline = { v -> shown = vm.setBaseline(s, v) },
                         onToggleLock = { v -> shown = vm.setLocked(s, v) },
-                        onDelete = { vm.deleteSession(s.id); shown = null; screen = Screen.HISTORY },
+                        onDelete = { if (vm.deleteSession(s.id)) { shown = null; screen = Screen.HISTORY } },
                         onDone = { shown = null; screen = if (sessions.any { it.id == s.id } && s !== vm.lastSession) Screen.HISTORY else Screen.HOME },
                     )
                 }

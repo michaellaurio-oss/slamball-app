@@ -622,11 +622,12 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         return updated
     }
 
-    /** Deletes a workout, unless it's locked. */
-    fun deleteSession(id: Long) {
-        if (_sessions.value.firstOrNull { it.id == id }?.isLocked == true) return
+    /** Deletes a workout, unless it's locked. Returns whether it was deleted. */
+    fun deleteSession(id: Long): Boolean {
+        if (_sessions.value.firstOrNull { it.id == id }?.isLocked == true) return false
         sessionStore.delete(id)
         _sessions.value = sessionStore.load()
+        return true
     }
 
     override fun onCleared() {
