@@ -163,3 +163,9 @@ install.bat                     build + install on a USB-connected phone
 ```
 
 Kotlin 2.0, Jetpack Compose (Material 3), Android Gradle Plugin 8.7, Gradle 8.11.1, minSdk 26, targetSdk 35.
+
+## Credits
+
+- Heart rate alarm sound (`app/src/main/res/raw/klaxon.wav`): "Ahooga horn" sound effect, licensed
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Trimmed to 1.95 s, converted to mono WAV,
+  with a short fade-out.
