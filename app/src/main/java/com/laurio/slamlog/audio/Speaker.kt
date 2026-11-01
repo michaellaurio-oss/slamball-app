@@ -132,8 +132,8 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     }.getOrNull()
 
     /**
-     * Heart rate alarm: a klaxon, the buzzy "ah-OO-gah" horn, sounded twice (about 1.6 s). Loud and
-     * nothing like the other cues, so it can't be mistaken for one.
+     * Heart rate alarm: a dive-alarm klaxon, three long buzzing blasts (about 4.75 s).
+     * Loud and nothing like the other cues, so it can't be mistaken for one.
      */
     fun klaxon() {
         val track = klaxonTrack ?: return play(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, KLAXON_MS)
@@ -147,29 +147,31 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
 
     private val klaxonTrack: AudioTrack? = runCatching {
         val rate = 44_100
-        val honk = rate * HONK_MS / 1000
-        val step = rate * (HONK_MS + HONK_GAP_MS) / 1000
+        val blast = rate * BLAST_MS / 1000
+        val step = rate * (BLAST_MS + BLAST_GAP_MS) / 1000
         val total = rate * KLAXON_MS / 1000
+        val len = BLAST_MS / 1000.0
+        val down = 0.35 // seconds of wind-down at the end of each blast
         val mix = DoubleArray(total)
-        for (k in 0 until HONKS) {
+        for (k in 0 until BLASTS) {
             val s0 = k * step
             var phase = 0.0
-            for (i in 0 until minOf(honk, total - s0)) {
+            for (i in 0 until minOf(blast, total - s0)) {
                 val t = i / rate.toDouble()
-                // "ah" low, "OO" sweeping up, "gah" falling a little at the end.
+                // Winds up 320 -> 445 Hz, holds, then winds down to 310 Hz, like a motor-driven horn.
                 val f = when {
-                    t < 0.08 -> 190.0
-                    t < 0.30 -> 190.0 + 210.0 * Math.pow((t - 0.08) / 0.22, 0.7)
-                    t < 0.55 -> 400.0
-                    else -> 400.0 - 60.0 * (t - 0.55) / (HONK_MS / 1000.0 - 0.55)
+                    t < 0.2 -> 320.0 + 125.0 * (1 - (1 - t / 0.2) * (1 - t / 0.2))
+                    t < len - down -> 445.0
+                    else -> 445.0 - 135.0 * (t - (len - down)) / down
                 }
                 phase += 2 * Math.PI * f / rate
-                // Band-limited sawtooth, hard-driven: the rasp of a horn diaphragm.
+                // Odd-heavy harmonics, driven hard: a square-ish electric buzz.
                 var v = 0.0
-                val harmonics = minOf((8000 / f).toInt(), 30)
-                for (h in 1..harmonics) v += Math.sin(h * phase) / h
-                v = Math.tanh(2.2 * v)
-                val env = minOf(1.0, t / 0.02, (HONK_MS / 1000.0 - t) / 0.03)
+                val harmonics = minOf((7000 / f).toInt(), 24)
+                for (h in 1..harmonics) v += Math.sin(h * phase) / h * (if (h % 2 == 1) 1.0 else 0.35)
+                v = Math.tanh(2.0 * v)
+                val fade = if (t < len - down) 1.0 else 1 - 0.6 * (t - (len - down)) / down
+                val env = minOf(1.0, t / 0.04, (len - t) / 0.03) * fade
                 mix[s0 + i] += v * env
             }
         }
@@ -224,9 +226,9 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         const val STRIKES = 3
         const val STRIKE_GAP_MS = 190
         const val BELL_MS = (STRIKES - 1) * STRIKE_GAP_MS + 420
-        const val HONKS = 2
-        const val HONK_MS = 720
-        const val HONK_GAP_MS = 120
-        const val KLAXON_MS = HONKS * HONK_MS + (HONKS - 1) * HONK_GAP_MS
+        const val BLASTS = 3
+        const val BLAST_MS = 1350
+        const val BLAST_GAP_MS = 350
+        const val KLAXON_MS = BLASTS * BLAST_MS + (BLASTS - 1) * BLAST_GAP_MS
     }
 }
