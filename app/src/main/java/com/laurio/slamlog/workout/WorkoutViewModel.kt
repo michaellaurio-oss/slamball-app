@@ -594,7 +594,9 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Mark or unmark a saved workout as a baseline test. Returns the updated workout. */
     fun setBaseline(session: Session, value: Boolean): Session {
-        val updated = session.copy(baseline = value)
+        // A finished baseline is locked by default; unmarking it keeps it locked until unlocked on purpose.
+        val keepLock = if (session.locked == null && session.isLocked) true else session.locked
+        val updated = session.copy(baseline = value, locked = keepLock)
         sessionStore.save(updated)
         _sessions.value = sessionStore.load()
         if (lastSession?.id == updated.id) lastSession = updated
