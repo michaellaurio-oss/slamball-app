@@ -1,0 +1,49 @@
+# Builds the app on GitHub and attaches the installable APK to a GitHub Release.
+# Run it from the repo's Actions tab ("Build APK for sharing" -> Run workflow), or push a tag like v1.1.
+# The APK is signed with app/debug.keystore, the same key as Michael's own install, so every
+# release can be installed over the previous one without losing workout history.
+name: Build APK for sharing
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release name, e.g. v1.0"
+        required: true
+        default: "v1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk "SlamLog-$TAG.apk"
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" "SlamLog-$TAG.apk" \
+            --title "Slam Log $TAG" \
+            --notes "Download SlamLog-$TAG.apk on an Android phone and open it to install. Installs over earlier versions and keeps workout history."
