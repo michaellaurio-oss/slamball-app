@@ -4,6 +4,13 @@ An Android app for slam ball workouts, built around a Bluetooth chest strap (COO
 that uses the standard Bluetooth Heart Rate service). It counts slams by listening through the microphone,
 coaches with voice and beeps, and tracks how fast your heart rate recovers after each set.
 
+<p>
+  <img src="docs/screenshots/slam.jpg" width="200" alt="Counting slams during a set">
+  <img src="docs/screenshots/rest.jpg" width="200" alt="Rest screen timing recovery to 130 bpm">
+  <img src="docs/screenshots/summary.jpg" width="200" alt="Baseline test summary: last slam to 130 bpm, first half vs second half">
+  <img src="docs/screenshots/sets.jpg" width="200" alt="Heart rate chart, time in zones, and per-set results">
+</p>
+
 ## Try it
 
 Download the latest APK from [Releases](https://github.com/michaellaurio-oss/slamball-app/releases/latest)
