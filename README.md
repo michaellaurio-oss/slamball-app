@@ -4,6 +4,15 @@ An Android app for slam ball workouts, built around a Bluetooth chest strap (COO
 that uses the standard Bluetooth Heart Rate service). It counts slams by listening through the microphone,
 coaches with voice and beeps, and tracks how fast your heart rate recovers after each set.
 
+## Try it
+
+Download the latest APK from [Releases](https://github.com/michaellaurio-oss/slamball-app/releases/latest)
+on an Android phone (8.0 or newer) and open it to install. Android will ask you to allow installs from
+your browser, and Play Protect may warn that the app is unknown; tap **Install anyway**. Any Bluetooth
+chest strap that uses the standard heart rate service works.
+
+Releases are built by GitHub Actions ([release.yml](.github/workflows/release.yml)) from the code in this repo.
+
 ## The headline metric: last slam → 130
 
 After every set, Slam Log starts a clock at your **last slam** and stops it when your heart rate falls to
@@ -67,11 +76,11 @@ No accounts, no internet, no ads. Data stays on the phone.
 ## Build and install (Windows)
 
 Uses a portable toolchain, no Android Studio needed:
-Java 17 in `D:\Users\micha\Android\jdk-17` and the Android SDK in `D:\Users\micha\Android\sdk`.
+Java 17 in `D:\Users\<you>\Android\jdk-17` and the Android SDK in `D:\Users\<you>\Android\sdk`.
 Create `local.properties` (not committed) containing:
 
 ```
-sdk.dir=D\:\\Users\\micha\\Android\\sdk
+sdk.dir=D\:\\Users\\<you>\\Android\\sdk
 ```
 
 Then:
@@ -83,8 +92,8 @@ Then:
 Manual equivalent (PowerShell, in the project folder):
 
 ```
-$env:JAVA_HOME='D:\Users\micha\Android\jdk-17'; .\gradlew.bat assembleDebug
-D:\Users\micha\Android\sdk\platform-tools\adb.exe install -r app\build\outputs\apk\debug\app-debug.apk
+$env:JAVA_HOME='D:\Users\<you>\Android\jdk-17'; .\gradlew.bat assembleDebug
+D:\Users\<you>\Android\sdk\platform-tools\adb.exe install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
 No cable? Copy `app\build\outputs\apk\debug\app-debug.apk` to the phone and open it there.
@@ -92,9 +101,14 @@ If adb lists the phone as `unauthorized`, unlock the phone and tap **Allow** on 
 
 Requires Android 8.0 or newer.
 
-**Lost or replaced the PC?** See [RECOVERY.md](RECOVERY.md) for rebuilding from GitHub. Debug builds are
-signed with `app/debug.keystore` (in the repo), so any PC can update the installed app without
-wiping its history.
+**Lost or replaced the PC?** See [RECOVERY.md](RECOVERY.md) for rebuilding from GitHub.
+
+**Why the signing key is committed.** `app/debug.keystore` is in the repo on purpose. Slam Log is a
+sideloaded personal app, not a Play Store release, and Android only installs an update over an
+existing app if both are signed with the same key. Keeping the key with the code means any PC, and
+the GitHub release build, can update the installed app without uninstalling it, which would delete
+the workout history stored on the phone. It's a debug key with no other use; an app published to
+the Play Store would use a private upload key instead.
 
 ## First workout checklist
 

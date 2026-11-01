@@ -1,5 +1,7 @@
 # Rebuilding Slam Log on a new or wiped PC
 
+In the paths below, `<you>` is your Windows username.
+
 Use this if the PC is lost, wiped or replaced. Everything needed to build the app is in this repo,
 **including the signing key** (`app/debug.keystore`). What isn't here is the build toolchain, which is
 free to download again.
@@ -12,28 +14,28 @@ lose it is uninstalling the app, so never uninstall it, even if an install error
 
 Either:
 - On https://github.com/michaellaurio-oss/slamball-app click **Code → Download ZIP**, then unzip it
-  (for example to `D:\Users\micha\Claude\slamball-app`), or
+  (for example to `D:\Users\<you>\Claude\slamball-app`), or
 - Install Git (git-scm.com), then in PowerShell:
-  `git clone https://github.com/michaellaurio-oss/slamball-app D:\Users\micha\Claude\slamball-app`
+  `git clone https://github.com/michaellaurio-oss/slamball-app D:\Users\<you>\Claude\slamball-app`
 
 ## 2. Install Java 17
 
 1. Go to https://adoptium.net, choose **Temurin 17**, Windows x64, **.zip** (not the installer).
-2. Unzip it, rename the folder inside to `jdk-17`, and put it at `D:\Users\micha\Android\jdk-17`
-   (so `D:\Users\micha\Android\jdk-17\bin\java.exe` exists).
+2. Unzip it, rename the folder inside to `jdk-17`, and put it at `D:\Users\<you>\Android\jdk-17`
+   (so `D:\Users\<you>\Android\jdk-17\bin\java.exe` exists).
 
 ## 3. Install the Android SDK
 
 1. Go to https://developer.android.com/studio, scroll to **Command line tools only**, and download
    the Windows zip.
-2. Make the folder `D:\Users\micha\Android\sdk\cmdline-tools\latest` and unzip so that
-   `D:\Users\micha\Android\sdk\cmdline-tools\latest\bin\sdkmanager.bat` exists. (The zip contains a
+2. Make the folder `D:\Users\<you>\Android\sdk\cmdline-tools\latest` and unzip so that
+   `D:\Users\<you>\Android\sdk\cmdline-tools\latest\bin\sdkmanager.bat` exists. (The zip contains a
    `cmdline-tools` folder; its contents go inside `latest`.)
 3. In PowerShell:
 
    ```
-   $env:JAVA_HOME='D:\Users\micha\Android\jdk-17'
-   cd D:\Users\micha\Android\sdk\cmdline-tools\latest\bin
+   $env:JAVA_HOME='D:\Users\<you>\Android\jdk-17'
+   cd D:\Users\<you>\Android\sdk\cmdline-tools\latest\bin
    .\sdkmanager.bat --licenses
    .\sdkmanager.bat "platform-tools" "platforms;android-35" "build-tools;35.0.0"
    ```
@@ -41,14 +43,14 @@ Either:
    Answer `y` to the license questions.
 
 Easier alternative: install Android Studio and let its setup wizard install the SDK. Then use the
-SDK location it shows (usually `C:\Users\micha\AppData\Local\Android\Sdk`) in steps 4 and 5.
+SDK location it shows (usually `C:\Users\<you>\AppData\Local\Android\Sdk`) in steps 4 and 5.
 
 ## 4. Create local.properties
 
 In the project folder, create a file named `local.properties` with this one line:
 
 ```
-sdk.dir=D\:\\Users\\micha\\Android\\sdk
+sdk.dir=D\:\\Users\\<you>\\Android\\sdk
 ```
 
 (It's not on GitHub because it's specific to each PC.)
@@ -61,7 +63,7 @@ sdk.dir=D\:\\Users\\micha\\Android\\sdk
 3. Double-click **install.bat** in the project folder. The first build downloads everything and
    takes several minutes.
 
-If you put Java or the SDK somewhere other than `D:\Users\micha\Android`, edit the two paths at the
+If you put Java or the SDK somewhere other than `D:\Users\<you>\Android`, edit the two paths at the
 top of `install.bat` and the path in `local.properties` to match.
 
 ## If the install fails

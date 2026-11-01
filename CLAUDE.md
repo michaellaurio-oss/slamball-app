@@ -53,25 +53,29 @@ When adding a field to `Session`, `SetResult` or `UserSettings`: give it a defau
 
 ## Build and install
 
-Portable toolchain on Michael's Windows PC (no Android Studio):
-- JDK 17: `D:\Users\micha\Android\jdk-17`
-- Android SDK: `D:\Users\micha\Android\sdk` (platform 35, build-tools 35, platform-tools/adb)
-- `local.properties` (not committed): `sdk.dir=D\:\\Users\\micha\\Android\\sdk`
-- Build: `$env:JAVA_HOME='D:\Users\micha\Android\jdk-17'; .\gradlew.bat assembleDebug`
+Portable toolchain on Michael's Windows PC (no Android Studio). Exact paths, his Windows username and
+his phone's adb id are in `CLAUDE.local.md` (on his PC only, not committed); read it when building there.
+- JDK 17: `D:\Users\<username>\Android\jdk-17`
+- Android SDK: `D:\Users\<username>\Android\sdk` (platform 35, build-tools 35, platform-tools/adb)
+- `local.properties` (not committed): `sdk.dir=D\:\\Users\\<username>\\Android\\sdk`
+- Build: `$env:JAVA_HOME='D:\Users\<username>\Android\jdk-17'; .\gradlew.bat assembleDebug`
 - Install: `adb install -r app\build\outputs\apk\debug\app-debug.apk` (keeps data). Or double-click
   `install.bat`, which does both.
 - Signing: debug builds use `app/debug.keystore` (committed on purpose, standard `android` passwords),
   copied from his PC's `~/.android/debug.keystore`, which signed the installed app. Never remove or
   replace it: a different key means updates fail and the only way in is an uninstall. Recovery steps
   for a new PC are in `RECOVERY.md`; keep them current if the toolchain changes.
-- Phone: Samsung, adb id `R5CY20N34VZ`. If adb shows `unauthorized`, he needs to tap Allow on the phone.
+- Phone: Samsung. If adb shows `unauthorized`, he needs to tap Allow on the phone.
+- Sharing: `.github/workflows/release.yml` builds the APK on GitHub and publishes a Release (Actions →
+  Build APK for sharing → Run workflow, or push a `v*` tag). The repo is public on purpose (portfolio).
 
 Versions match his other app (Range Log) so cached dependencies are reused: AGP 8.7.3, Kotlin 2.0.21,
 Compose BOM 2024.12.01, core-ktx 1.15.0, Gradle 8.11.1.
 
-Local working copy on his PC: `D:\Users\micha\Claude\slamball-app`.
 
 ## Conventions
 
 - Keep the README's user-facing feature list in sync when features change.
+- Keep personal details (paths with his username, device ids, email) out of committed files; put them
+  in `CLAUDE.local.md` or `install.local.bat`, both gitignored.
 - Don't uninstall the app to fix install problems: that deletes his workout history. Use `install -r`.

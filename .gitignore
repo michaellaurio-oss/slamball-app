@@ -1,6 +1,8 @@
 .gradle/
 build/
 local.properties
+CLAUDE.local.md
+install.local.bat
 .idea/
 *.iml
 .DS_Store
