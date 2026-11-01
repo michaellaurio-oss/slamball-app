@@ -37,7 +37,7 @@ import kotlin.math.roundToInt
 private val dateFmt = SimpleDateFormat("EEE, MMM d · h:mm a", Locale.US)
 
 @Composable
-fun SummaryScreen(session: Session, maxHr: Int, onRate: (Int) -> Unit, onToggleBaseline: (Boolean) -> Unit, onDelete: () -> Unit, onDone: () -> Unit) {
+fun SummaryScreen(session: Session, maxHr: Int, onRate: (Int) -> Unit, onToggleBaseline: (Boolean) -> Unit, onToggleLock: (Boolean) -> Unit, onDelete: () -> Unit, onDone: () -> Unit) {
     var confirmDelete by remember { mutableStateOf(false) }
     BackHandler(onBack = onDone)
     val hasHr = session.avgHr > 0
@@ -161,11 +161,19 @@ fun SummaryScreen(session: Session, maxHr: Int, onRate: (Int) -> Unit, onToggleB
         TextButton(onClick = { onToggleBaseline(!session.baseline) }, modifier = Modifier.fillMaxWidth()) {
             Text(if (session.baseline) "Don't count this as a baseline test" else "Count this as a baseline test")
         }
-        TextButton(
-            onClick = { confirmDelete = true },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        ) { Text("Delete this workout") }
+        SwitchRow(
+            "Lock this workout",
+            if (session.isLocked) "Locked: it can't be deleted until you unlock it."
+            else "Locking keeps it from being deleted by accident.",
+            session.isLocked,
+        ) { onToggleLock(it) }
+        if (!session.isLocked) {
+            TextButton(
+                onClick = { confirmDelete = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) { Text("Delete this workout") }
+        }
     }
 
     if (confirmDelete) {

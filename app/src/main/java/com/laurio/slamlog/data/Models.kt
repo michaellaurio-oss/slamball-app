@@ -143,8 +143,13 @@ data class Session(
     val restUntilTarget: Boolean = false,
     /** Minimum rest in rest-until-target mode; 0 = not recorded (older workouts) or a timed rest. */
     val minRestSec: Int = 0,
+    /** Locked workouts can't be deleted. null = not set: finished baseline tests are locked by default. */
+    val locked: Boolean? = null,
 ) {
     val totalReps: Int get() = sets.sumOf { it.reps }
+
+    /** Whether the workout is protected from deletion (explicit choice, else finished baselines). */
+    val isLocked: Boolean get() = locked ?: (baseline && completed)
 
     /** Sets measured against this heart rate target. */
     fun setsWithTarget(target: Int) = sets.filter { it.targetHr == target }
@@ -204,6 +209,7 @@ data class Session(
         .put("plannedSets", plannedSets)
         .put("restUntilTarget", restUntilTarget)
         .put("minRestSec", minRestSec)
+        .put("locked", locked ?: JSONObject.NULL)
 
     companion object {
         fun fromJson(o: JSONObject): Session {
@@ -227,6 +233,7 @@ data class Session(
                 plannedSets = o.optInt("plannedSets", 0),
                 restUntilTarget = o.optBoolean("restUntilTarget", false),
                 minRestSec = o.optInt("minRestSec", 0),
+                locked = if (o.has("locked") && !o.isNull("locked")) o.optBoolean("locked") else null,
             )
         }
     }

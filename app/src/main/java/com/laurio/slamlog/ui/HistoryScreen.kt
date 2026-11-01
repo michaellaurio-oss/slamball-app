@@ -97,8 +97,9 @@ fun HistoryScreen(
                 Text(dayFmt.format(Date(s.startMillis)), fontWeight = FontWeight.SemiBold)
                 Row {
                     Column(Modifier.weight(1f)) {
-                        if (s.baseline) {
-                            Text("BASELINE TEST", color = Sky, fontWeight = FontWeight.Bold,
+                        val tags = listOfNotNull(if (s.baseline) "BASELINE TEST" else null, if (s.isLocked) "LOCKED" else null)
+                        if (tags.isNotEmpty()) {
+                            Text(tags.joinToString(" · "), color = Sky, fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.labelMedium)
                         }
                         Text("${s.totalReps} slams · ${s.sets.size} × ${s.targetReps} · ${s.ballWeightLbs} lb")

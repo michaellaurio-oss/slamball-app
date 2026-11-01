@@ -54,6 +54,8 @@ so they can't answer "is my recovery improving?" on their own. The **baseline te
 - **By reps per set** (Trends) compares training workouts only with others at the same reps per set.
 - A workout can be marked or unmarked as a baseline from its summary screen. Baselines only count
   when every set was finished.
+- Any workout can be **locked** from its summary screen; a locked workout has no delete button until
+  you unlock it. Finished baseline tests are locked automatically. History marks them LOCKED.
 
 ## Everything else
 

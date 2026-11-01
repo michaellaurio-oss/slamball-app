@@ -22,6 +22,8 @@ He is the only user. Explain build and install steps plainly; he is not a day-to
 - The baseline also has its own recovery target, `UserSettings.baselineTargetHr` (first load defaults
   to the training `recoveryTargetHr`). `startBaseline()` passes it as `WorkoutConfig.targetHr`; the
   engine uses `targetHr()` (config value, else the training target). Baseline UI/verdict use it.
+- Workout lock: `Session.locked` (null = not chosen) and `Session.isLocked` (explicit value, else
+  `baseline && completed`). Locked workouts hide the delete button and `deleteSession` refuses them.
 - Age comes from the stored birthday (`UserSettings.birthDate`), never a stored age.
 
 ## Architecture

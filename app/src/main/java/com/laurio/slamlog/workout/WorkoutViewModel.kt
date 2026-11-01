@@ -612,7 +612,17 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         return File(dir, "slam-log-workouts-$stamp.csv").apply { writeText(buildCsv(_sessions.value)) }
     }
 
+    fun setLocked(session: Session, value: Boolean): Session {
+        val updated = session.copy(locked = value)
+        sessionStore.save(updated)
+        _sessions.value = sessionStore.load()
+        if (lastSession?.id == updated.id) lastSession = updated
+        return updated
+    }
+
+    /** Deletes a workout, unless it's locked. */
     fun deleteSession(id: Long) {
+        if (_sessions.value.firstOrNull { it.id == id }?.isLocked == true) return
         sessionStore.delete(id)
         _sessions.value = sessionStore.load()
     }
