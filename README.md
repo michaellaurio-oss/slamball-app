@@ -167,5 +167,5 @@ Kotlin 2.0, Jetpack Compose (Material 3), Android Gradle Plugin 8.7, Gradle 8.11
 ## Credits
 
 - Heart rate alarm sound (`app/src/main/res/raw/klaxon.wav`): ["Ahooga Horn"](https://www.freesoundslibrary.com/ahooga-horn/)
-  by Spanac, Free Sounds Library, licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+  from Free Sounds Library (freesoundslibrary.com), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
   Changes: trimmed to 1.95 s, converted to mono WAV, short fade-out added.
