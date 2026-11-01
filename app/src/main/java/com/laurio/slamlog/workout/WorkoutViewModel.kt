@@ -287,7 +287,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Heart rate alarm: siren the moment HR reaches the threshold, again every ALARM_REPEAT_SEC while it
+     * Heart rate alarm: klaxon the moment HR reaches the threshold, again every ALARM_REPEAT_SEC while it
      * stays there, and re-armed once HR drops ALARM_RESET_BPM below it.
      */
     private fun checkHrAlarm(bpm: Int?, s: UserSettings) {
@@ -295,7 +295,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         val limit = s.alarmBpm
         if (bpm >= limit) {
             if (alarmQuietSec <= 0) {
-                speaker.siren()
+                speaker.klaxon()
                 alarmQuietSec = ALARM_REPEAT_SEC
             } else {
                 alarmQuietSec--
@@ -305,8 +305,8 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Play the heart rate alarm siren (the test button in About you). */
-    fun testSiren() = speaker.siren()
+    /** Sound the heart rate alarm klaxon (the test button in About you). */
+    fun testAlarm() = speaker.klaxon()
 
     private fun tick() {
         val u = _ui.value

@@ -64,7 +64,7 @@ so they can't answer "is my recovery improving?" on their own. The **baseline te
 - **Slam effects**: a flash, shockwave rings and flying debris behind the rep count on every slam,
   with a screen shake; a bigger green burst when a set is finished. Can be turned off.
 - **Heart rate zones** from your max heart rate, time in each zone, and a heart rate chart per workout.
-- **Max heart rate warning** (optional, in About you): pick a limit and a siren sounds if your heart
+- **Max heart rate warning** (optional, in About you): pick a limit and a klaxon sounds if your heart
   rate reaches it during a workout, repeating every 15 seconds while it stays there.
   Age comes from your **birthday**, so max HR (220 − age) and the zones update each year;
   a known real max HR can be entered instead.

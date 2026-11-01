@@ -51,7 +51,7 @@ data class UserSettings(
     val baselineMinRestSec: Int = 60,
     /** Baseline's own recovery target, separate from training's [recoveryTargetHr]. */
     val baselineTargetHr: Int = 130,
-    /** Siren when heart rate reaches [hrAlarmBpm] during a workout. Off by default. */
+    /** Klaxon when heart rate reaches [hrAlarmBpm] during a workout. Off by default. */
     val hrAlarm: Boolean = false,
     /** Alarm threshold; 0 = not chosen yet, use max heart rate. */
     val hrAlarmBpm: Int = 0,

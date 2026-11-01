@@ -132,12 +132,12 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     }.getOrNull()
 
     /**
-     * Heart rate alarm: a wailing siren, two rise-and-fall sweeps, about 1.6 s. Loud and nothing like
-     * the other cues, so it can't be mistaken for one.
+     * Heart rate alarm: a klaxon, the buzzy "ah-OO-gah" horn, sounded twice (about 1.6 s). Loud and
+     * nothing like the other cues, so it can't be mistaken for one.
      */
-    fun siren() {
-        val track = sirenTrack ?: return play(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, SIREN_MS)
-        markBusy(SIREN_MS + 100L)
+    fun klaxon() {
+        val track = klaxonTrack ?: return play(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, KLAXON_MS)
+        markBusy(KLAXON_MS + 100L)
         runCatching {
             track.stop()
             track.reloadStaticData()
@@ -145,25 +145,36 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         }
     }
 
-    private val sirenTrack: AudioTrack? = runCatching {
+    private val klaxonTrack: AudioTrack? = runCatching {
         val rate = 44_100
-        val total = rate * SIREN_MS / 1000
-        val sweep = total / SIREN_SWEEPS
-        val pcm = ShortArray(total)
-        var phase = 0.0
-        for (i in 0 until total) {
-            // Frequency rises 600 → 1400 Hz and falls back in each sweep (a smooth wail).
-            val x = (i % sweep) / sweep.toDouble()
-            val f = 600.0 + 800.0 * Math.sin(Math.PI * x)
-            phase += 2 * Math.PI * f / rate
-            // Sine plus odd harmonics, softly clipped: a harsh, horn-like "blare" rather than a pure tone.
-            val raw = Math.sin(phase) + 0.35 * Math.sin(3 * phase) + 0.2 * Math.sin(5 * phase)
-            var v = Math.tanh(1.8 * raw) / Math.tanh(1.8 * 1.3)
-            val edge = rate * 20 / 1000 // 20 ms fade in/out, no clicks
-            if (i < edge) v *= i / edge.toDouble()
-            if (i > total - edge) v *= (total - i) / edge.toDouble()
-            pcm[i] = (v.coerceIn(-1.0, 1.0) * 0.95 * Short.MAX_VALUE).toInt().toShort()
+        val honk = rate * HONK_MS / 1000
+        val step = rate * (HONK_MS + HONK_GAP_MS) / 1000
+        val total = rate * KLAXON_MS / 1000
+        val mix = DoubleArray(total)
+        for (k in 0 until HONKS) {
+            val s0 = k * step
+            var phase = 0.0
+            for (i in 0 until minOf(honk, total - s0)) {
+                val t = i / rate.toDouble()
+                // "ah" low, "OO" sweeping up, "gah" falling a little at the end.
+                val f = when {
+                    t < 0.08 -> 190.0
+                    t < 0.30 -> 190.0 + 210.0 * Math.pow((t - 0.08) / 0.22, 0.7)
+                    t < 0.55 -> 400.0
+                    else -> 400.0 - 60.0 * (t - 0.55) / (HONK_MS / 1000.0 - 0.55)
+                }
+                phase += 2 * Math.PI * f / rate
+                // Band-limited sawtooth, hard-driven: the rasp of a horn diaphragm.
+                var v = 0.0
+                val harmonics = minOf((8000 / f).toInt(), 30)
+                for (h in 1..harmonics) v += Math.sin(h * phase) / h
+                v = Math.tanh(2.2 * v)
+                val env = minOf(1.0, t / 0.02, (HONK_MS / 1000.0 - t) / 0.03)
+                mix[s0 + i] += v * env
+            }
         }
+        val peak = mix.maxOf { Math.abs(it) }.coerceAtLeast(1e-9)
+        val pcm = ShortArray(total) { (mix[it] / peak * 0.95 * Short.MAX_VALUE).toInt().toShort() }
         AudioTrack.Builder()
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -206,14 +217,16 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         runCatching { tts.shutdown() }
         tone?.release()
         bell?.release()
-        sirenTrack?.release()
+        klaxonTrack?.release()
     }
 
     private companion object {
         const val STRIKES = 3
         const val STRIKE_GAP_MS = 190
         const val BELL_MS = (STRIKES - 1) * STRIKE_GAP_MS + 420
-        const val SIREN_SWEEPS = 2
-        const val SIREN_MS = 1600
+        const val HONKS = 2
+        const val HONK_MS = 720
+        const val HONK_GAP_MS = 120
+        const val KLAXON_MS = HONKS * HONK_MS + (HONKS - 1) * HONK_GAP_MS
     }
 }
