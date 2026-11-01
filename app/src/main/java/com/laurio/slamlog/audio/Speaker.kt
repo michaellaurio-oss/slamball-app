@@ -132,7 +132,7 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
     }.getOrNull()
 
     /**
-     * Heart rate alarm: a dive-alarm klaxon, three long buzzing blasts (about 4.75 s).
+     * Heart rate alarm: a dive-alarm klaxon, two long buzzing blasts (about 3 s).
      * Loud and nothing like the other cues, so it can't be mistaken for one.
      */
     fun klaxon() {
@@ -226,7 +226,7 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         const val STRIKES = 3
         const val STRIKE_GAP_MS = 190
         const val BELL_MS = (STRIKES - 1) * STRIKE_GAP_MS + 420
-        const val BLASTS = 3
+        const val BLASTS = 2
         const val BLAST_MS = 1350
         const val BLAST_GAP_MS = 350
         const val KLAXON_MS = BLASTS * BLAST_MS + (BLASTS - 1) * BLAST_GAP_MS
