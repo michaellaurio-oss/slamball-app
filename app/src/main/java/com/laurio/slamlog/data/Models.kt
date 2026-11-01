@@ -51,6 +51,10 @@ data class UserSettings(
     val baselineMinRestSec: Int = 60,
     /** Baseline's own recovery target, separate from training's [recoveryTargetHr]. */
     val baselineTargetHr: Int = 130,
+    /** Siren when heart rate reaches [hrAlarmBpm] during a workout. Off by default. */
+    val hrAlarm: Boolean = false,
+    /** Alarm threshold; 0 = not chosen yet, use max heart rate. */
+    val hrAlarmBpm: Int = 0,
 ) {
     val birthday: LocalDate?
         get() = birthDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
@@ -65,6 +69,9 @@ data class UserSettings(
     val estimatedMaxHr: Int get() = 220 - age
 
     val maxHr: Int get() = if (maxHrOverride > 0) maxHrOverride else estimatedMaxHr
+
+    /** Heart rate that sets off the alarm. */
+    val alarmBpm: Int get() = if (hrAlarmBpm > 0) hrAlarmBpm else maxHr
 
     companion object {
         const val DEFAULT_AGE = 40

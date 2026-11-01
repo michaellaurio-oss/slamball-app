@@ -24,6 +24,9 @@ He is the only user. Explain build and install steps plainly; he is not a day-to
   engine uses `targetHr()` (config value, else the training target). Baseline UI/verdict use it.
 - Workout lock: `Session.locked` (null = not chosen) and `Session.isLocked` (explicit value, else
   `baseline && completed`). Locked workouts hide the delete button and `deleteSession` refuses them.
+- Optional HR alarm: `UserSettings.hrAlarm` / `hrAlarmBpm` (0 = use max HR; `alarmBpm`). `checkHrAlarm` in
+  `tick()` plays `Speaker.siren()` (synthesized wail, 1.6 s) on reaching it, repeats every 15 s while above,
+  re-arms 5 bpm below. Set on `AboutYouScreen`, with a test button.
 - Age comes from the stored birthday (`UserSettings.birthDate`), never a stored age.
 
 ## Architecture

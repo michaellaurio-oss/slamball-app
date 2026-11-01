@@ -131,6 +131,59 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
             .also { it.write(pcm, 0, pcm.size) }
     }.getOrNull()
 
+    /**
+     * Heart rate alarm: a wailing siren, two rise-and-fall sweeps, about 1.6 s. Loud and nothing like
+     * the other cues, so it can't be mistaken for one.
+     */
+    fun siren() {
+        val track = sirenTrack ?: return play(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, SIREN_MS)
+        markBusy(SIREN_MS + 100L)
+        runCatching {
+            track.stop()
+            track.reloadStaticData()
+            track.play()
+        }
+    }
+
+    private val sirenTrack: AudioTrack? = runCatching {
+        val rate = 44_100
+        val total = rate * SIREN_MS / 1000
+        val sweep = total / SIREN_SWEEPS
+        val pcm = ShortArray(total)
+        var phase = 0.0
+        for (i in 0 until total) {
+            // Frequency rises 600 → 1400 Hz and falls back in each sweep (a smooth wail).
+            val x = (i % sweep) / sweep.toDouble()
+            val f = 600.0 + 800.0 * Math.sin(Math.PI * x)
+            phase += 2 * Math.PI * f / rate
+            // Sine plus odd harmonics, softly clipped: a harsh, horn-like "blare" rather than a pure tone.
+            val raw = Math.sin(phase) + 0.35 * Math.sin(3 * phase) + 0.2 * Math.sin(5 * phase)
+            var v = Math.tanh(1.8 * raw) / Math.tanh(1.8 * 1.3)
+            val edge = rate * 20 / 1000 // 20 ms fade in/out, no clicks
+            if (i < edge) v *= i / edge.toDouble()
+            if (i > total - edge) v *= (total - i) / edge.toDouble()
+            pcm[i] = (v.coerceIn(-1.0, 1.0) * 0.95 * Short.MAX_VALUE).toInt().toShort()
+        }
+        AudioTrack.Builder()
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_GAME)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build(),
+            )
+            .setAudioFormat(
+                AudioFormat.Builder()
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setSampleRate(rate)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .build(),
+            )
+            .setTransferMode(AudioTrack.MODE_STATIC)
+            .setBufferSizeInBytes(pcm.size * 2)
+            .build()
+            .also { it.write(pcm, 0, pcm.size) }
+    }.getOrNull()
+
     /** Quiet click when a rep is counted. */
     fun tick() = play(ToneGenerator.TONE_DTMF_5, 50)
 
@@ -153,11 +206,14 @@ class Speaker(context: Context) : TextToSpeech.OnInitListener {
         runCatching { tts.shutdown() }
         tone?.release()
         bell?.release()
+        sirenTrack?.release()
     }
 
     private companion object {
         const val STRIKES = 3
         const val STRIKE_GAP_MS = 190
         const val BELL_MS = (STRIKES - 1) * STRIKE_GAP_MS + 420
+        const val SIREN_SWEEPS = 2
+        const val SIREN_MS = 1600
     }
 }

@@ -22,6 +22,8 @@ class SettingsStore(context: Context) {
         baselineRestUntilTarget = p.getBoolean("baselineRestUntilTarget", true),
         baselineMinRestSec = p.getInt("baselineMinRestSec", 60),
         baselineTargetHr = p.getInt("baselineTargetHr", p.getInt("recoveryTargetHr", 130)),
+        hrAlarm = p.getBoolean("hrAlarm", false),
+        hrAlarmBpm = p.getInt("hrAlarmBpm", 0),
     )
 
     fun saveSettings(s: UserSettings) {
@@ -42,6 +44,8 @@ class SettingsStore(context: Context) {
             .putBoolean("baselineRestUntilTarget", s.baselineRestUntilTarget)
             .putInt("baselineMinRestSec", s.baselineMinRestSec)
             .putInt("baselineTargetHr", s.baselineTargetHr)
+            .putBoolean("hrAlarm", s.hrAlarm)
+            .putInt("hrAlarmBpm", s.hrAlarmBpm)
             .apply()
     }
 

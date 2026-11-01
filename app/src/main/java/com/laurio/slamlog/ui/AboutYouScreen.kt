@@ -103,5 +103,28 @@ fun AboutYouScreen(vm: WorkoutViewModel, onBack: () -> Unit) {
             )
         }
 
+        SectionCard {
+            Label("Heart rate alarm")
+            SwitchRow(
+                "Max heart rate warning",
+                "A siren sounds if your heart rate reaches the limit during a workout, and again every " +
+                    "15 seconds while it stays there.",
+                s.hrAlarm,
+            ) { vm.updateSettings(s.copy(hrAlarm = it)) }
+            if (s.hrAlarm) {
+                Stepper(
+                    "Warn at",
+                    "${s.alarmBpm} bpm",
+                    onMinus = { vm.updateSettings(s.copy(hrAlarmBpm = (s.alarmBpm - 1).coerceAtLeast(100))) },
+                    onPlus = { vm.updateSettings(s.copy(hrAlarmBpm = (s.alarmBpm + 1).coerceAtMost(230))) },
+                )
+                Text(
+                    "Your max heart rate is ${s.maxHr}" +
+                        if (s.alarmBpm == s.maxHr) "." else " (warning at ${s.alarmBpm * 100 / s.maxHr}% of it).",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedButton(onClick = { vm.testSiren() }) { Text("Test the siren") }
+            }
+        }
     }
 }

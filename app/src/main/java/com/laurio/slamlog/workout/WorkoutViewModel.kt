@@ -85,6 +85,8 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The session that just finished, for the summary screen. */
     var lastSession: Session? = null
+    /** Seconds until the HR alarm may sound again; 0 = armed. */
+    private var alarmQuietSec = 0
         private set
 
     private val _micError = MutableStateFlow<String?>(null)
@@ -216,6 +218,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         restStartHr = 0
         restElapsed = 0
         noHrSec = 0
+        alarmQuietSec = 0
         recovery60 = null
         startMillis = System.currentTimeMillis()
         lastSession = null
@@ -283,6 +286,28 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         WorkoutService.stop(getApplication())
     }
 
+    /**
+     * Heart rate alarm: siren the moment HR reaches the threshold, again every ALARM_REPEAT_SEC while it
+     * stays there, and re-armed once HR drops ALARM_RESET_BPM below it.
+     */
+    private fun checkHrAlarm(bpm: Int?, s: UserSettings) {
+        if (!s.hrAlarm || bpm == null) return
+        val limit = s.alarmBpm
+        if (bpm >= limit) {
+            if (alarmQuietSec <= 0) {
+                speaker.siren()
+                alarmQuietSec = ALARM_REPEAT_SEC
+            } else {
+                alarmQuietSec--
+            }
+        } else if (bpm <= limit - ALARM_RESET_BPM) {
+            alarmQuietSec = 0
+        }
+    }
+
+    /** Play the heart rate alarm siren (the test button in About you). */
+    fun testSiren() = speaker.siren()
+
     private fun tick() {
         val u = _ui.value
         if (u.phase == Phase.IDLE || u.phase == Phase.DONE) return
@@ -290,6 +315,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         val bpm = hr.currentBpm()
 
         hrSamples += bpm ?: 0
+        checkHrAlarm(bpm, s)
         if (bpm != null) {
             zoneSec[Physiology.zone(bpm, s.maxHr)]++
             calories += Physiology.kcalPerSecond(bpm, s)
@@ -643,6 +669,8 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         private const val MAX_RECOVERY_SEC = 300
         private const val GO_AFTER_TARGET_SEC = 5
         private const val NO_HR_GIVE_UP_SEC = 15
+        private const val ALARM_REPEAT_SEC = 15
+        private const val ALARM_RESET_BPM = 5
         /** A missed final slam comes within a few seconds of the one before it. */
         private const val MISSED_SLAM_WINDOW_MS = 4_000L
     }
